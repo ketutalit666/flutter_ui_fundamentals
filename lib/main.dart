@@ -14,54 +14,77 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 2 MediaQuery',
-      home: const MediaQueryPage(),
+      title: 'Tahap 3 LayoutBuilder',
+      home: const LayoutBuilderPage(),
     );
   }
 }
 
-class MediaQueryPage extends StatelessWidget {
-  const MediaQueryPage({super.key});
+class LayoutBuilderPage extends StatelessWidget {
+  const LayoutBuilderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final width = screenSize.width;
-    final height = screenSize.height;
-    final orientation = MediaQuery.of(context).orientation;
-
-    final deviceCategory = width < 600 ? 'Compact' : 'Wide';
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 2 - MediaQuery'),
+        title: const Text('Tahap 3 - LayoutBuilder'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Informasi Layar',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+
+          String category;
+          String description;
+          IconData icon;
+
+          if (width < 600) {
+            category = 'Compact';
+            description = 'Tampilan untuk layar kecil';
+            icon = Icons.smartphone;
+          } else if (width < 840) {
+            category = 'Medium';
+            description = 'Tampilan untuk layar menengah';
+            icon = Icons.tablet;
+          } else {
+            category = 'Expanded';
+            description = 'Tampilan untuk layar lebar';
+            icon = Icons.desktop_windows;
+          }
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    size: 80,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    category,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(description),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Lebar tersedia: ${width.toStringAsFixed(0)} px',
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    '$studentId - $studentName',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              Text('Lebar: ${width.toStringAsFixed(0)} px'),
-              Text('Tinggi: ${height.toStringAsFixed(0)} px'),
-              Text('Orientasi: $orientation'),
-              Text('Kategori: $deviceCategory'),
-              const SizedBox(height: 20),
-              Text(
-                '$studentId - $studentName',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
