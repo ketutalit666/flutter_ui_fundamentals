@@ -61,7 +61,6 @@ class _MainPageState extends State<MainPage> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        // Expanded: menggunakan NavigationRail
         if (width >= 840) {
           return Scaffold(
             body: Row(
@@ -92,9 +91,7 @@ class _MainPageState extends State<MainPage> {
                     ),
                   ],
                 ),
-
                 const VerticalDivider(width: 1),
-
                 Expanded(
                   child: pages[selectedIndex],
                 ),
@@ -103,7 +100,6 @@ class _MainPageState extends State<MainPage> {
           );
         }
 
-        // Compact dan Medium: menggunakan NavigationBar
         return Scaffold(
           body: pages[selectedIndex],
           bottomNavigationBar: NavigationBar(
@@ -243,7 +239,7 @@ class StudentInfo extends StatelessWidget {
 
 // ==================== COURSE CARD ====================
 
-class CourseCard extends StatelessWidget {
+class CourseCard extends StatefulWidget {
   final String code;
   final String title;
   final String status;
@@ -256,18 +252,98 @@ class CourseCard extends StatelessWidget {
   });
 
   @override
+  State<CourseCard> createState() => _CourseCardState();
+}
+
+class _CourseCardState extends State<CourseCard> {
+  bool isFavorite = false;
+
+  void toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorite
+              ? '${widget.title} ditambahkan ke favorit'
+              : '${widget.title} dihapus dari favorit',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void showLongPressMessage() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Long Press'),
+          content: Text(
+            'Kamu menekan lama course "${widget.title}".',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Text(
-            code.substring(2),
+    return InkWell(
+      onLongPress: showLongPressMessage,
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                child: Text(
+                  widget.code.substring(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Kode: ${widget.code}'),
+                    Text('Status: ${widget.status}'),
+                  ],
+                ),
+              ),
+
+              IconButton(
+                onPressed: toggleFavorite,
+                icon: Icon(
+                  isFavorite
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                ),
+                tooltip: 'Favorit',
+              ),
+            ],
           ),
         ),
-        title: Text(title),
-        subtitle: Text('Kode: $code\nStatus: $status'),
-        isThreeLine: true,
       ),
     );
   }
