@@ -14,228 +14,238 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 9 - Returning Data',
+      title: 'Tahap 10 - NavigationBar',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+        ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const MainPage(),
     );
   }
 }
 
-// ==================== DATA COURSE ====================
+// ==================== MAIN PAGE ====================
 
-final List<Map<String, dynamic>> courses = [
-  {
-    'code': 'FL001',
-    'title': 'Flutter UI Fundamentals',
-    'credits': 3,
-    'status': 'Selesai',
-  },
-  {
-    'code': 'FL002',
-    'title': 'Widget dan Layout Flutter',
-    'credits': 3,
-    'status': 'Berjalan',
-  },
-  {
-    'code': 'FL003',
-    'title': 'Responsive Layout',
-    'credits': 3,
-    'status': 'Berjalan',
-  },
-];
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
-// ==================== HOME PAGE ====================
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  int selectedIndex = 0;
+
+  final List<Widget> pages = const [
+    HomePage(),
+    CoursesPage(),
+    ProfilePage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: pages[selectedIndex],
+
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Courses',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==================== HOME ====================
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  Future<void> openCourseDetail(
-    BuildContext context,
-    Map<String, dynamic> course,
-  ) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CourseDetailPage(
-          course: course,
-        ),
-      ),
-    );
-
-    if (result == true && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${course['title']} berhasil ditandai selesai.',
-          ),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer'),
+        title: const Text('Home'),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: courses.length,
-        itemBuilder: (context, index) {
-          final course = courses[index];
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.home,
+                size: 80,
+              ),
 
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Text(
-                  course['code'].toString().substring(2),
+              const SizedBox(height: 20),
+
+              const Text(
+                'Course Explorer',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              title: Text(course['title']),
-              subtitle: Text(
-                '${course['code']} • '
-                '${course['credits']} SKS • '
-                '${course['status']}',
+
+              const SizedBox(height: 12),
+
+              Text('Nama: $studentName'),
+
+              Text('NIM: $studentId'),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'Selamat datang di Course Explorer.',
+                textAlign: TextAlign.center,
               ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-              ),
-              onTap: () {
-                openCourseDetail(
-                  context,
-                  course,
-                );
-              },
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-// ==================== DETAIL PAGE ====================
+// ==================== COURSES ====================
 
-class CourseDetailPage extends StatelessWidget {
-  final Map<String, dynamic> course;
-
-  const CourseDetailPage({
-    super.key,
-    required this.course,
-  });
+class CoursesPage extends StatelessWidget {
+  const CoursesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Course'),
+        title: const Text('Courses'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(
-              Icons.menu_book,
-              size: 80,
-            ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          CourseCard(
+            code: 'FL001',
+            title: 'Flutter UI Fundamentals',
+            status: 'Selesai',
+          ),
+          CourseCard(
+            code: 'FL002',
+            title: 'Widget dan Layout Flutter',
+            status: 'Berjalan',
+          ),
+          CourseCard(
+            code: 'FL003',
+            title: 'Responsive Layout',
+            status: 'Berjalan',
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-            const SizedBox(height: 20),
+// ==================== PROFILE ====================
 
-            Text(
-              course['title'],
-              style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
 
-            const SizedBox(height: 20),
-
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Kode Course: ${course['code']}',
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      'SKS: ${course['credits']}',
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    Text(
-                      'Status: ${course['status']}',
-                    ),
-                  ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircleAvatar(
+                radius: 50,
+                child: Icon(
+                  Icons.person,
+                  size: 55,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-            const Text(
-              'Data Mahasiswa',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Text('Nama: $studentName'),
-
-            const SizedBox(height: 5),
-
-            Text('NIM: $studentId'),
-
-            const SizedBox(height: 30),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(
-                    context,
-                    true,
-                  );
-                },
-                icon: const Icon(Icons.check),
-                label: const Text(
-                  'Tandai Selesai',
+              Text(
+                studentName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(
-                    context,
-                    false,
-                  );
-                },
-                child: const Text(
-                  'Kembali Tanpa Menyelesaikan',
-                ),
+              Text('NIM: $studentId'),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'Mahasiswa Teknik Informatika',
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== COURSE CARD ====================
+
+class CourseCard extends StatelessWidget {
+  final String code;
+  final String title;
+  final String status;
+
+  const CourseCard({
+    super.key,
+    required this.code,
+    required this.title,
+    required this.status,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          child: Text(
+            code.substring(2),
+          ),
+        ),
+        title: Text(title),
+        subtitle: Text('$code • $status'),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
         ),
       ),
     );
