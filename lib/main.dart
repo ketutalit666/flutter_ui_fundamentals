@@ -14,77 +14,149 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 3 LayoutBuilder',
-      home: const LayoutBuilderPage(),
+      title: 'Tahap 4 Expanded Flexible Wrap',
+      home: const LayoutPage(),
     );
   }
 }
 
-class LayoutBuilderPage extends StatelessWidget {
-  const LayoutBuilderPage({super.key});
+class LayoutPage extends StatelessWidget {
+  const LayoutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 3 - LayoutBuilder'),
+        title: const Text('Tahap 4 - Layout'),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$studentId - $studentName',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
 
-          String category;
-          String description;
-          IconData icon;
+            const SizedBox(height: 24),
 
-          if (width < 600) {
-            category = 'Compact';
-            description = 'Tampilan untuk layar kecil';
-            icon = Icons.smartphone;
-          } else if (width < 840) {
-            category = 'Medium';
-            description = 'Tampilan untuk layar menengah';
-            icon = Icons.tablet;
-          } else {
-            category = 'Expanded';
-            description = 'Tampilan untuk layar lebar';
-            icon = Icons.desktop_windows;
-          }
+            const Text(
+              'Expanded 2 : 1',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
 
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 10),
+
+            SizedBox(
+              height: 100,
+              child: Row(
                 children: [
-                  Icon(
-                    icon,
-                    size: 80,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    category,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      color: Colors.blue,
+                      child: const Center(
+                        child: Text(
+                          'Expanded 2',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(description),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Lebar tersedia: ${width.toStringAsFixed(0)} px',
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    '$studentId - $studentName',
-                    textAlign: TextAlign.center,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      color: Colors.green,
+                      child: const Center(
+                        child: Text(
+                          'Expanded 1',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Flexible',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Row(
+              children: [
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Colors.orange,
+                    child: const Text(
+                      'Flexible menyesuaikan ruang yang tersedia.',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Icon(Icons.phone_android),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Wrap - 6 Chip',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            const Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(label: Text('Flutter')),
+                Chip(label: Text('Dart')),
+                Chip(label: Text('UI')),
+                Chip(label: Text('Layout')),
+                Chip(label: Text('Responsive')),
+                Chip(label: Text('Mobile')),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Identitas Mahasiswa',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text('Nama: $studentName'),
+            Text('NIM: $studentId'),
+          ],
+        ),
       ),
     );
   }
