@@ -1,5 +1,47 @@
 import 'package:flutter/material.dart';
 
+const String studentName = 'I Ketut Alit Junaedi Wardana';
+const String studentId = '2415051050';
+
+const List<Map<String, dynamic>> courses = [
+  {
+    'code': 'FL001',
+    'title': 'Flutter UI Fundamentals',
+    'credits': 3,
+    'status': 'Selesai',
+  },
+  {
+    'code': 'FL002',
+    'title': 'Widget dan Layout Flutter',
+    'credits': 3,
+    'status': 'Berjalan',
+  },
+  {
+    'code': 'FL003',
+    'title': 'Responsive Layout',
+    'credits': 3,
+    'status': 'Berjalan',
+  },
+  {
+    'code': 'FL004',
+    'title': 'Navigation Flutter',
+    'credits': 3,
+    'status': 'Belum',
+  },
+  {
+    'code': 'FL005',
+    'title': 'User Interaction',
+    'credits': 3,
+    'status': 'Belum',
+  },
+  {
+    'code': 'FL006',
+    'title': 'Flutter Forms',
+    'credits': 3,
+    'status': 'Belum',
+  },
+];
+
 void main() {
   runApp(const CourseExplorerApp());
 }
@@ -21,8 +63,6 @@ class CourseExplorerApp extends StatelessWidget {
   }
 }
 
-// ==================== MAIN PAGE ====================
-
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -36,38 +76,19 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> pages = const [
     HomePage(),
     CoursesPage(),
-    ProfilePage(),
-  ];
-
-  final List<NavigationDestination> destinations = const [
-    NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home),
-      label: 'Home',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.menu_book_outlined),
-      selectedIcon: Icon(Icons.menu_book),
-      label: 'Courses',
-    ),
-    NavigationDestination(
-      icon: Icon(Icons.person_outline),
-      selectedIcon: Icon(Icons.person),
-      label: 'Profile',
-    ),
+    FeedbackForm(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
+        final isExpanded = constraints.maxWidth >= 840;
 
-        // Expanded menggunakan NavigationRail
-        if (width >= 840) {
-          return Scaffold(
-            body: Row(
-              children: [
+        return Scaffold(
+          body: Row(
+            children: [
+              if (isExpanded)
                 NavigationRail(
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (index) {
@@ -88,40 +109,93 @@ class _MainPageState extends State<MainPage> {
                       label: Text('Courses'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      selectedIcon: Icon(Icons.person),
-                      label: Text('Profile'),
+                      icon: Icon(Icons.feedback_outlined),
+                      selectedIcon: Icon(Icons.feedback),
+                      label: Text('Feedback'),
                     ),
                   ],
                 ),
-                const VerticalDivider(width: 1),
-                Expanded(
-                  child: pages[selectedIndex],
-                ),
-              ],
-            ),
-          );
-        }
-
-        // Compact dan Medium menggunakan NavigationBar
-        return Scaffold(
-          body: pages[selectedIndex],
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (index) {
-              setState(() {
-                selectedIndex = index;
-              });
-            },
-            destinations: destinations,
+              Expanded(
+                child: pages[selectedIndex],
+              ),
+            ],
           ),
+          bottomNavigationBar: isExpanded
+              ? null
+              : NavigationBar(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
+                      label: 'Courses',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.feedback_outlined),
+                      selectedIcon: Icon(Icons.feedback),
+                      label: 'Feedback',
+                    ),
+                  ],
+                ),
         );
       },
     );
   }
 }
 
-// ==================== HOME ====================
+// =====================================================
+// REUSABLE WIDGET 1
+// =====================================================
+
+class StudentIdentity extends StatelessWidget {
+  const StudentIdentity({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              child: Icon(Icons.person),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    studentName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('NIM: $studentId'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================
+// HOME PAGE
+// =====================================================
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -132,16 +206,40 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Course Explorer'),
       ),
-      body: const Center(
-        child: StudentInfo(
-          title: 'Home',
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const StudentIdentity(),
+            const SizedBox(height: 20),
+            Text(
+              'Selamat Datang',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Jelajahi course Flutter dan lihat detail pembelajaran yang tersedia.',
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Course Pilihan',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            CourseCard(course: courses[0]),
+            CourseCard(course: courses[1]),
+            CourseCard(course: courses[2]),
+          ],
         ),
       ),
     );
   }
 }
 
-// ==================== COURSES ====================
+// =====================================================
+// COURSES PAGE
+// =====================================================
 
 class CoursesPage extends StatelessWidget {
   const CoursesPage({super.key});
@@ -152,103 +250,47 @@ class CoursesPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Courses'),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
-          CourseCard(
-            code: 'FL001',
-            title: 'Flutter UI Fundamentals',
-            status: 'Selesai',
-          ),
-          CourseCard(
-            code: 'FL002',
-            title: 'Widget dan Layout Flutter',
-            status: 'Berjalan',
-          ),
-          CourseCard(
-            code: 'FL003',
-            title: 'Responsive Layout',
-            status: 'Berjalan',
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          int crossAxisCount;
+
+          if (constraints.maxWidth < 600) {
+            crossAxisCount = 1;
+          } else if (constraints.maxWidth < 840) {
+            crossAxisCount = 2;
+          } else {
+            crossAxisCount = 3;
+          }
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: courses.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.35,
+            ),
+            itemBuilder: (context, index) {
+              return CourseCard(course: courses[index]);
+            },
+          );
+        },
       ),
     );
   }
 }
 
-// ==================== PROFILE ====================
-
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
-      body: const FeedbackForm(),
-    );
-  }
-}
-
-// ==================== STUDENT INFO ====================
-
-class StudentInfo extends StatelessWidget {
-  final String title;
-
-  const StudentInfo({
-    super.key,
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(20),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircleAvatar(
-              radius: 40,
-              child: Icon(
-                Icons.person,
-                size: 40,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'I Ketut Alit Junaedi Wardana',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            const Text('NIM: 2415051050'),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ==================== COURSE CARD ====================
+// =====================================================
+// REUSABLE WIDGET 2
+// =====================================================
 
 class CourseCard extends StatefulWidget {
-  final String code;
-  final String title;
-  final String status;
+  final Map<String, dynamic> course;
 
   const CourseCard({
     super.key,
-    required this.code,
-    required this.title,
-    required this.status,
+    required this.course,
   });
 
   @override
@@ -267,28 +309,28 @@ class _CourseCardState extends State<CourseCard> {
       SnackBar(
         content: Text(
           isFavorite
-              ? '${widget.title} ditambahkan ke favorit'
-              : '${widget.title} dihapus dari favorit',
+              ? '${widget.course['title']} ditambahkan ke favorit.'
+              : '${widget.course['title']} dihapus dari favorit.',
         ),
-        duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  void showLongPressMessage() {
+  void showLongPressDialog() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Long Press'),
+          title: const Text('Informasi Course'),
           content: Text(
-            'Kamu menekan lama course "${widget.title}".',
+            '${widget.course['title']}\n'
+            'Kode: ${widget.course['code']}\n'
+            'SKS: ${widget.course['credits']}\n'
+            'Status: ${widget.course['status']}',
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Tutup'),
             ),
           ],
@@ -300,44 +342,60 @@ class _CourseCardState extends State<CourseCard> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onLongPress: showLongPressMessage,
+      onLongPress: showLongPressDialog,
       borderRadius: BorderRadius.circular(12),
       child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
         child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                child: Text(
-                  widget.code.substring(2),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.course['code'],
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text('Kode: ${widget.code}'),
-                    Text('Status: ${widget.status}'),
-                  ],
+                  ),
+                  IconButton(
+                    onPressed: toggleFavorite,
+                    icon: Icon(
+                      isFavorite
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                widget.course['title'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
                 ),
               ),
-              IconButton(
-                onPressed: toggleFavorite,
-                icon: Icon(
-                  isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border,
+              const SizedBox(height: 8),
+              Text('SKS: ${widget.course['credits']}'),
+              Text('Status: ${widget.course['status']}'),
+              const Spacer(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            CourseDetailPage(course: widget.course),
+                      ),
+                    );
+                  },
+                  child: const Text('Detail'),
                 ),
-                tooltip: 'Favorit',
               ),
             ],
           ),
@@ -347,7 +405,76 @@ class _CourseCardState extends State<CourseCard> {
   }
 }
 
-// ==================== FEEDBACK FORM ====================
+// =====================================================
+// DETAIL PAGE
+// =====================================================
+
+class CourseDetailPage extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const CourseDetailPage({
+    super.key,
+    required this.course,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Course Detail'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const StudentIdentity(),
+            const SizedBox(height: 20),
+            Text(
+              course['title'],
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.code),
+              title: const Text('Kode Course'),
+              subtitle: Text(course['code']),
+            ),
+            ListTile(
+              leading: const Icon(Icons.school),
+              title: const Text('SKS'),
+              subtitle: Text('${course['credits']}'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Status'),
+              subtitle: Text(course['status']),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(context, true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${course['title']} berhasil ditandai selesai.',
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.check),
+              label: const Text('Tandai Selesai'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =====================================================
+// FEEDBACK FORM
+// =====================================================
 
 class FeedbackForm extends StatefulWidget {
   const FeedbackForm({super.key});
@@ -359,24 +486,11 @@ class FeedbackForm extends StatefulWidget {
 class _FeedbackFormState extends State<FeedbackForm> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController nameController =
-      TextEditingController();
-
-  final TextEditingController nimController =
-      TextEditingController();
-
-  final TextEditingController commentController =
-      TextEditingController();
+  final nameController = TextEditingController();
+  final nimController = TextEditingController();
+  final commentController = TextEditingController();
 
   bool isLoading = false;
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    nimController.dispose();
-    commentController.dispose();
-    super.dispose();
-  }
 
   Future<void> submitForm() async {
     if (!_formKey.currentState!.validate()) {
@@ -387,10 +501,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
       isLoading = true;
     });
 
-    // Simulasi proses pengiriman data
-    await Future.delayed(
-      const Duration(seconds: 2),
-    );
+    await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
@@ -398,17 +509,12 @@ class _FeedbackFormState extends State<FeedbackForm> {
       isLoading = false;
     });
 
-    // SnackBar sebagai feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text(
-          'Feedback berhasil dikirim.',
-        ),
-        duration: Duration(seconds: 2),
+        content: Text('Feedback berhasil dikirim.'),
       ),
     );
 
-    // AlertDialog sebagai konfirmasi
     showDialog(
       context: context,
       builder: (context) {
@@ -419,9 +525,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('OK'),
             ),
           ],
@@ -431,121 +535,95 @@ class _FeedbackFormState extends State<FeedbackForm> {
   }
 
   @override
+  void dispose() {
+    nameController.dispose();
+    nimController.dispose();
+    commentController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Feedback Course',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-
-            const SizedBox(height: 8),
-
-            const Text(
-              'Silakan isi data dan komentar Anda.',
-            ),
-
-            const SizedBox(height: 20),
-
-            // Nama
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nama',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Feedback'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              const StudentIdentity(),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nama wajib diisi';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Nama wajib diisi';
-                }
-
-                return null;
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // NIM
-            TextFormField(
-              controller: nimController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'NIM',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.badge),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: nimController,
+                decoration: const InputDecoration(
+                  labelText: 'NIM',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'NIM wajib diisi';
+                  }
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'NIM wajib diisi';
-                }
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: commentController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Komentar',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Komentar wajib diisi';
+                  }
 
-                return null;
-              },
-            ),
+                  if (value.trim().length < 5) {
+                    return 'Komentar minimal 5 karakter';
+                  }
 
-            const SizedBox(height: 16),
-
-            // Komentar
-            TextFormField(
-              controller: commentController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Komentar',
-                hintText: 'Masukkan komentar minimal 5 karakter',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.comment),
-                alignLabelWithHint: true,
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Komentar wajib diisi';
-                }
-
-                if (value.trim().length < 5) {
-                  return 'Komentar minimal 5 karakter';
-                }
-
-                return null;
-              },
-            ),
-
-            const SizedBox(height: 20),
-
-            // Tombol Kirim
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: isLoading ? null : submitForm,
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(
-                  isLoading
-                      ? 'Mengirim...'
-                      : 'Kirim Feedback',
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: isLoading ? null : submitForm,
+                  icon: isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.send),
+                  label: Text(
+                    isLoading ? 'Mengirim...' : 'Kirim Feedback',
+                  ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              'Nama: I Ketut Alit Junaedi Wardana\n'
-              'NIM: 2415051050',
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
