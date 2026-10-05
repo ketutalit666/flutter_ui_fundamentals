@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 8 - Passing Data',
+      title: 'Tahap 9 - Returning Data',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -52,6 +52,30 @@ final List<Map<String, dynamic>> courses = [
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Future<void> openCourseDetail(
+    BuildContext context,
+    Map<String, dynamic> course,
+  ) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CourseDetailPage(
+          course: course,
+        ),
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${course['title']} berhasil ditandai selesai.',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,17 +98,17 @@ class HomePage extends StatelessWidget {
               ),
               title: Text(course['title']),
               subtitle: Text(
-                '${course['code']} • ${course['credits']} SKS • ${course['status']}',
+                '${course['code']} • '
+                '${course['credits']} SKS • '
+                '${course['status']}',
               ),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+              ),
               onTap: () {
-                Navigator.push(
+                openCourseDetail(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CourseDetailPage(
-                      course: course,
-                    ),
-                  ),
+                  course,
                 );
               },
             ),
@@ -141,21 +165,18 @@ class CourseDetailPage extends StatelessWidget {
                   children: [
                     Text(
                       'Kode Course: ${course['code']}',
-                      style: const TextStyle(fontSize: 16),
                     ),
 
                     const SizedBox(height: 10),
 
                     Text(
                       'SKS: ${course['credits']}',
-                      style: const TextStyle(fontSize: 16),
                     ),
 
                     const SizedBox(height: 10),
 
                     Text(
                       'Status: ${course['status']}',
-                      style: const TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
@@ -184,11 +205,34 @@ class CourseDetailPage extends StatelessWidget {
 
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pop(
+                    context,
+                    true,
+                  );
                 },
-                child: const Text('Kembali'),
+                icon: const Icon(Icons.check),
+                label: const Text(
+                  'Tandai Selesai',
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(
+                    context,
+                    false,
+                  );
+                },
+                child: const Text(
+                  'Kembali Tanpa Menyelesaikan',
+                ),
               ),
             ),
           ],
