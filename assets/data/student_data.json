@@ -1,0 +1,43 @@
+{
+  "student": {
+    "name": "I Ketut Alit Junaedi Wardana",
+    "id": "2415051050"
+  },
+  "materials": [
+    {
+      "title": "Flutter UI Fundamentals",
+      "code": "FL001",
+      "credits": 3,
+      "status": "Selesai",
+      "category": "UI"
+    },
+    {
+      "title": "Widget dan Layout Flutter",
+      "code": "FL002",
+      "credits": 3,
+      "status": "Selesai",
+      "category": "Layout"
+    },
+    {
+      "title": "State Management",
+      "code": "FL003",
+      "credits": 3,
+      "status": "Selesai",
+      "category": "State"
+    },
+    {
+      "title": "Input dan Form Flutter",
+      "code": "FL004",
+      "credits": 2,
+      "status": "Belum Selesai",
+      "category": "Input"
+    },
+    {
+      "title": "List dan Dynamic UI",
+      "code": "FL005",
+      "credits": 3,
+      "status": "Belum Selesai",
+      "category": "Dynamic UI"
+    }
+  ]
+}
