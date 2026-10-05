@@ -1,30 +1,87 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:flutter_ui_fundamentals/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets(
+    'Course Explorer menampilkan halaman Home',
+    (WidgetTester tester) async {
+      // Menjalankan aplikasi
+      await tester.pumpWidget(const CourseExplorerApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // Memastikan judul aplikasi tampil
+      expect(find.text('Course Explorer'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      // Home muncul pada AppBar dan NavigationBar,
+      // sehingga menggunakan findsWidgets.
+      expect(find.text('Home'), findsWidgets);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+      // Memastikan identitas mahasiswa tampil
+      expect(
+        find.text('I Ketut Alit Junaedi Wardana'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('NIM: 2415051050'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'NavigationBar dapat berpindah ke halaman Courses',
+    (WidgetTester tester) async {
+      // Menjalankan aplikasi
+      await tester.pumpWidget(const CourseExplorerApp());
+
+      // Tekan menu Courses pada NavigationBar
+      await tester.tap(find.text('Courses').last);
+      await tester.pumpAndSettle();
+
+      // Memastikan halaman Courses tampil
+      expect(find.text('Courses'), findsWidgets);
+
+      // Memastikan course tampil
+      expect(
+        find.text('Flutter UI Fundamentals'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Widget dan Layout Flutter'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Responsive Layout'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'NavigationBar dapat berpindah ke halaman Profile',
+    (WidgetTester tester) async {
+      // Menjalankan aplikasi
+      await tester.pumpWidget(const CourseExplorerApp());
+
+      // Tekan menu Profile
+      await tester.tap(find.text('Profile').last);
+      await tester.pumpAndSettle();
+
+      // Memastikan halaman Profile tampil
+      expect(find.text('Profile'), findsWidgets);
+
+      // Memastikan identitas mahasiswa tampil
+      expect(
+        find.text('I Ketut Alit Junaedi Wardana'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('NIM: 2415051050'),
+        findsOneWidget,
+      );
+    },
+  );
 }
