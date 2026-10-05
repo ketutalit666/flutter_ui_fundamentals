@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 7 - Navigation',
+      title: 'Tahap 8 - Passing Data',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -23,6 +23,29 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+// ==================== DATA COURSE ====================
+
+final List<Map<String, dynamic>> courses = [
+  {
+    'code': 'FL001',
+    'title': 'Flutter UI Fundamentals',
+    'credits': 3,
+    'status': 'Selesai',
+  },
+  {
+    'code': 'FL002',
+    'title': 'Widget dan Layout Flutter',
+    'credits': 3,
+    'status': 'Berjalan',
+  },
+  {
+    'code': 'FL003',
+    'title': 'Responsive Layout',
+    'credits': 3,
+    'status': 'Berjalan',
+  },
+];
 
 // ==================== HOME PAGE ====================
 
@@ -33,57 +56,40 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home Page'),
+        title: const Text('Course Explorer'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.home,
-                size: 80,
-              ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: courses.length,
+        itemBuilder: (context, index) {
+          final course = courses[index];
 
-              const SizedBox(height: 20),
-
-              const Text(
-                'Course Explorer',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              leading: CircleAvatar(
+                child: Text(
+                  course['code'].toString().substring(2),
                 ),
               ),
-
-              const SizedBox(height: 12),
-
-              Text(
-                'Nama: $studentName',
-                textAlign: TextAlign.center,
+              title: Text(course['title']),
+              subtitle: Text(
+                '${course['code']} • ${course['credits']} SKS • ${course['status']}',
               ),
-
-              Text(
-                'NIM: $studentId',
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 30),
-
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DetailPage(),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CourseDetailPage(
+                      course: course,
                     ),
-                  );
-                },
-                child: const Text('Buka Detail'),
-              ),
-            ],
-          ),
-        ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
       ),
     );
   }
@@ -91,67 +97,101 @@ class HomePage extends StatelessWidget {
 
 // ==================== DETAIL PAGE ====================
 
-class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+class CourseDetailPage extends StatelessWidget {
+  final Map<String, dynamic> course;
+
+  const CourseDetailPage({
+    super.key,
+    required this.course,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Page'),
+        title: const Text('Detail Course'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.menu_book,
-                size: 80,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.menu_book,
+              size: 80,
+            ),
+
+            const SizedBox(height: 20),
+
+            Text(
+              course['title'],
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
               ),
+            ),
 
-              const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-              const Text(
-                'Flutter UI Fundamentals',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kode Course: ${course['code']}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Text(
+                      'SKS: ${course['credits']}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Text(
+                      'Status: ${course['status']}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-              const Text(
-                'Halaman detail course yang dibuka '
-                'menggunakan Navigator.push().',
-                textAlign: TextAlign.center,
+            const Text(
+              'Data Mahasiswa',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
+            ),
 
-              const SizedBox(height: 30),
+            const SizedBox(height: 10),
 
-              Text(
-                'Nama: $studentName',
-                textAlign: TextAlign.center,
-              ),
+            Text('Nama: $studentName'),
 
-              Text(
-                'NIM: $studentId',
-                textAlign: TextAlign.center,
-              ),
+            const SizedBox(height: 5),
 
-              const SizedBox(height: 30),
+            Text('NIM: $studentId'),
 
-              ElevatedButton(
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
                 child: const Text('Kembali'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
