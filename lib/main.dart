@@ -1,32 +1,25 @@
 import 'package:flutter/material.dart';
 
-const String studentName = 'I Ketut Alit Junaedi Wardana';
-const String studentId = '2415051050';
-
 void main() {
-  runApp(const MyApp());
+  runApp(const CourseExplorerApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CourseExplorerApp extends StatelessWidget {
+  const CourseExplorerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 10 - NavigationBar',
+      title: 'Course Explorer',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const MainPage(),
     );
   }
 }
-
-// ==================== MAIN PAGE ====================
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -44,36 +37,86 @@ class _MainPageState extends State<MainPage> {
     ProfilePage(),
   ];
 
+  final List<NavigationDestination> destinations = const [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
+      label: 'Home',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.menu_book_outlined),
+      selectedIcon: Icon(Icons.menu_book),
+      label: 'Courses',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline),
+      selectedIcon: Icon(Icons.person),
+      label: 'Profile',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[selectedIndex],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
 
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+        // Expanded: menggunakan NavigationRail
+        if (width >= 840) {
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
+                      label: Text('Courses'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: Text('Profile'),
+                    ),
+                  ],
+                ),
+
+                const VerticalDivider(width: 1),
+
+                Expanded(
+                  child: pages[selectedIndex],
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Compact dan Medium: menggunakan NavigationBar
+        return Scaffold(
+          body: pages[selectedIndex],
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: selectedIndex,
+            onDestinationSelected: (index) {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+            destinations: destinations,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Courses',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -87,43 +130,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Course Explorer'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.home,
-                size: 80,
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Course Explorer',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              Text('Nama: $studentName'),
-
-              Text('NIM: $studentId'),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Selamat datang di Course Explorer.',
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+      body: const Center(
+        child: StudentInfo(
+          title: 'Home',
         ),
       ),
     );
@@ -176,42 +187,54 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircleAvatar(
-                radius: 50,
-                child: Icon(
-                  Icons.person,
-                  size: 55,
-                ),
+      body: const Center(
+        child: StudentInfo(
+          title: 'Profile',
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== STUDENT INFO ====================
+
+class StudentInfo extends StatelessWidget {
+  final String title;
+
+  const StudentInfo({
+    super.key,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.all(20),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircleAvatar(
+              radius: 40,
+              child: Icon(
+                Icons.person,
+                size: 40,
               ),
-
-              const SizedBox(height: 20),
-
-              Text(
-                studentName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text('NIM: $studentId'),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Mahasiswa Teknik Informatika',
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'I Ketut Alit Junaedi Wardana',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            const Text('NIM: 2415051050'),
+          ],
         ),
       ),
     );
@@ -243,10 +266,8 @@ class CourseCard extends StatelessWidget {
           ),
         ),
         title: Text(title),
-        subtitle: Text('$code • $status'),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-        ),
+        subtitle: Text('Kode: $code\nStatus: $status'),
+        isThreeLine: true,
       ),
     );
   }
