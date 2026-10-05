@@ -21,6 +21,8 @@ class CourseExplorerApp extends StatelessWidget {
   }
 }
 
+// ==================== MAIN PAGE ====================
+
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -61,6 +63,7 @@ class _MainPageState extends State<MainPage> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
+        // Expanded menggunakan NavigationRail
         if (width >= 840) {
           return Scaffold(
             body: Row(
@@ -100,6 +103,7 @@ class _MainPageState extends State<MainPage> {
           );
         }
 
+        // Compact dan Medium menggunakan NavigationBar
         return Scaffold(
           body: pages[selectedIndex],
           bottomNavigationBar: NavigationBar(
@@ -183,11 +187,7 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: const Center(
-        child: StudentInfo(
-          title: 'Profile',
-        ),
-      ),
+      body: const FeedbackForm(),
     );
   }
 }
@@ -239,7 +239,7 @@ class StudentInfo extends StatelessWidget {
 
 // ==================== COURSE CARD ====================
 
-class CourseCard extends StatefulWidget {
+class CourseCard extends StatelessWidget {
   final String code;
   final String title;
   final String status;
@@ -252,97 +252,167 @@ class CourseCard extends StatefulWidget {
   });
 
   @override
-  State<CourseCard> createState() => _CourseCardState();
-}
-
-class _CourseCardState extends State<CourseCard> {
-  bool isFavorite = false;
-
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isFavorite
-              ? '${widget.title} ditambahkan ke favorit'
-              : '${widget.title} dihapus dari favorit',
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        leading: CircleAvatar(
+          child: Text(
+            code.substring(2),
+          ),
         ),
-        duration: const Duration(seconds: 1),
+        title: Text(title),
+        subtitle: Text(
+          'Kode: $code\nStatus: $status',
+        ),
+        isThreeLine: true,
       ),
     );
   }
+}
 
-  void showLongPressMessage() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Long Press'),
-          content: Text(
-            'Kamu menekan lama course "${widget.title}".',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Tutup'),
-            ),
-          ],
-        );
-      },
-    );
+// ==================== FEEDBACK FORM ====================
+
+class FeedbackForm extends StatefulWidget {
+  const FeedbackForm({super.key});
+
+  @override
+  State<FeedbackForm> createState() => _FeedbackFormState();
+}
+
+class _FeedbackFormState extends State<FeedbackForm> {
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController nameController =
+      TextEditingController();
+
+  final TextEditingController nimController =
+      TextEditingController();
+
+  final TextEditingController commentController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    nimController.dispose();
+    commentController.dispose();
+    super.dispose();
+  }
+
+  void submitForm() {
+    if (_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Form berhasil dikirim.'),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onLongPress: showLongPressMessage,
-      borderRadius: BorderRadius.circular(12),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              CircleAvatar(
-                child: Text(
-                  widget.code.substring(2),
-                ),
-              ),
-              const SizedBox(width: 12),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Feedback Course',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('Kode: ${widget.code}'),
-                    Text('Status: ${widget.status}'),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 8),
 
-              IconButton(
-                onPressed: toggleFavorite,
-                icon: Icon(
-                  isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                ),
-                tooltip: 'Favorit',
+            const Text(
+              'Silakan isi data dan komentar Anda.',
+            ),
+
+            const SizedBox(height: 20),
+
+            // Nama
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Nama',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
               ),
-            ],
-          ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Nama wajib diisi';
+                }
+
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // NIM
+            TextFormField(
+              controller: nimController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'NIM',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.badge),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'NIM wajib diisi';
+                }
+
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Komentar
+            TextFormField(
+              controller: commentController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Komentar',
+                hintText: 'Masukkan komentar minimal 5 karakter',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.comment),
+                alignLabelWithHint: true,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Komentar wajib diisi';
+                }
+
+                if (value.trim().length < 5) {
+                  return 'Komentar minimal 5 karakter';
+                }
+
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: submitForm,
+                icon: const Icon(Icons.send),
+                label: const Text('Kirim Feedback'),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'Nama: I Ketut Alit Junaedi Wardana\n'
+              'NIM: 2415051050',
+            ),
+          ],
         ),
       ),
     );
