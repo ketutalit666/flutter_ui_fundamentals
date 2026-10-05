@@ -14,149 +14,136 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 4 Expanded Flexible Wrap',
-      home: const LayoutPage(),
+      title: 'Tahap 5 GridView',
+      home: const GridViewPage(),
     );
   }
 }
 
-class LayoutPage extends StatelessWidget {
-  const LayoutPage({super.key});
+class GridViewPage extends StatelessWidget {
+  const GridViewPage({super.key});
+
+  final List<Map<String, dynamic>> courses = const [
+    {
+      'code': 'FL001',
+      'title': 'Flutter UI Fundamentals',
+      'credits': 3,
+      'status': 'Selesai',
+    },
+    {
+      'code': 'FL002',
+      'title': 'Widget dan Layout Flutter',
+      'credits': 3,
+      'status': 'Berjalan',
+    },
+    {
+      'code': 'FL003',
+      'title': 'Responsive Layout',
+      'credits': 3,
+      'status': 'Berjalan',
+    },
+    {
+      'code': 'FL004',
+      'title': 'Navigation Flutter',
+      'credits': 3,
+      'status': 'Belum',
+    },
+    {
+      'code': 'FL005',
+      'title': 'User Interaction',
+      'credits': 3,
+      'status': 'Belum',
+    },
+    {
+      'code': 'FL006',
+      'title': 'Flutter Forms',
+      'credits': 3,
+      'status': 'Belum',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4 - Layout'),
+        title: const Text('Tahap 5 - GridView'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$studentId - $studentName',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          int crossAxisCount;
 
-            const SizedBox(height: 24),
+          if (constraints.maxWidth < 600) {
+            crossAxisCount = 1;
+          } else if (constraints.maxWidth < 840) {
+            crossAxisCount = 2;
+          } else {
+            crossAxisCount = 3;
+          }
 
-            const Text(
-              'Expanded 2 : 1',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            SizedBox(
-              height: 100,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Colors.blue,
-                      child: const Center(
-                        child: Text(
-                          'Expanded 2',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Colors.green,
-                      child: const Center(
-                        child: Text(
-                          'Expanded 1',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Flexible',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Row(
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    color: Colors.orange,
-                    child: const Text(
-                      'Flexible menyesuaikan ruang yang tersedia.',
-                    ),
+                Text(
+                  '$studentId - $studentName',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Icon(Icons.phone_android),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: GridView.builder(
+                    gridDelegate:
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.4,
+                    ),
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course = courses[index];
+
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                course['code'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                course['title'],
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                'SKS: ${course['credits']}',
+                              ),
+                              Text(
+                                'Status: ${course['status']}',
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Wrap - 6 Chip',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            const Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Chip(label: Text('Flutter')),
-                Chip(label: Text('Dart')),
-                Chip(label: Text('UI')),
-                Chip(label: Text('Layout')),
-                Chip(label: Text('Responsive')),
-                Chip(label: Text('Mobile')),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Identitas Mahasiswa',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Text('Nama: $studentName'),
-            Text('NIM: $studentId'),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
