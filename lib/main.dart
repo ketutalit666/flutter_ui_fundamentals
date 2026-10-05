@@ -14,28 +14,52 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 1 Responsive Layout',
-      home: const ResponsivePage(),
+      title: 'Tahap 2 MediaQuery',
+      home: const MediaQueryPage(),
     );
   }
 }
 
-class ResponsivePage extends StatelessWidget {
-  const ResponsivePage({super.key});
+class MediaQueryPage extends StatelessWidget {
+  const MediaQueryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final width = screenSize.width;
+    final height = screenSize.height;
+    final orientation = MediaQuery.of(context).orientation;
+
+    final deviceCategory = width < 600 ? 'Compact' : 'Wide';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 1 - Responsive Layout'),
+        title: const Text('Tahap 2 - MediaQuery'),
       ),
       body: Center(
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            '$studentId - $studentName',
-            style: const TextStyle(fontSize: 18),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Informasi Layar',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text('Lebar: ${width.toStringAsFixed(0)} px'),
+              Text('Tinggi: ${height.toStringAsFixed(0)} px'),
+              Text('Orientasi: $orientation'),
+              Text('Kategori: $deviceCategory'),
+              const SizedBox(height: 20),
+              Text(
+                '$studentId - $studentName',
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
