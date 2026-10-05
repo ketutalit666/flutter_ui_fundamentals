@@ -14,152 +14,144 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Tahap 6 - Scrolling',
+      title: 'Tahap 7 - Navigation',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const ProfilePage(),
+      home: const HomePage(),
     );
   }
 }
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
+// ==================== HOME PAGE ====================
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 6 - Scrolling'),
+        title: const Text('Home Page'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Profil Mahasiswa',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.home,
+                size: 80,
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 20),
 
-            const Text(
-              'SingleChildScrollView digunakan agar seluruh isi '
-              'halaman dapat digulir ketika tidak cukup pada layar.',
-            ),
-
-            const SizedBox(height: 24),
-
-            Center(
-              child: CircleAvatar(
-                radius: 45,
-                child: const Icon(
-                  Icons.person,
-                  size: 50,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            Text(
-              'Nama: $studentName',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'NIM: $studentId',
-              style: const TextStyle(fontSize: 16),
-            ),
-
-            const SizedBox(height: 24),
-
-            const Text(
-              'Form Data Mahasiswa',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Nama Lengkap',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'NIM',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Program Studi',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const TextField(
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Alamat',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            const TextField(
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Deskripsi Diri',
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                child: const Text('Simpan Data'),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            const Center(
-              child: Text(
-                'Akhir halaman',
+              const Text(
+                'Course Explorer',
                 style: TextStyle(
-                  color: Colors.grey,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 12),
+
+              Text(
+                'Nama: $studentName',
+                textAlign: TextAlign.center,
+              ),
+
+              Text(
+                'NIM: $studentId',
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 30),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DetailPage(),
+                    ),
+                  );
+                },
+                child: const Text('Buka Detail'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== DETAIL PAGE ====================
+
+class DetailPage extends StatelessWidget {
+  const DetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detail Page'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.menu_book,
+                size: 80,
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'Flutter UI Fundamentals',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              const Text(
+                'Halaman detail course yang dibuka '
+                'menggunakan Navigator.push().',
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 30),
+
+              Text(
+                'Nama: $studentName',
+                textAlign: TextAlign.center,
+              ),
+
+              Text(
+                'NIM: $studentId',
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 30),
+
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Kembali'),
+              ),
+            ],
+          ),
         ),
       ),
     );
