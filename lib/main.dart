@@ -239,7 +239,7 @@ class StudentInfo extends StatelessWidget {
 
 // ==================== COURSE CARD ====================
 
-class CourseCard extends StatelessWidget {
+class CourseCard extends StatefulWidget {
   final String code;
   final String title;
   final String status;
@@ -252,20 +252,96 @@ class CourseCard extends StatelessWidget {
   });
 
   @override
+  State<CourseCard> createState() => _CourseCardState();
+}
+
+class _CourseCardState extends State<CourseCard> {
+  bool isFavorite = false;
+
+  void toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorite
+              ? '${widget.title} ditambahkan ke favorit'
+              : '${widget.title} dihapus dari favorit',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void showLongPressMessage() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Long Press'),
+          content: Text(
+            'Kamu menekan lama course "${widget.title}".',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Text(
-            code.substring(2),
+    return InkWell(
+      onLongPress: showLongPressMessage,
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                child: Text(
+                  widget.code.substring(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Kode: ${widget.code}'),
+                    Text('Status: ${widget.status}'),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: toggleFavorite,
+                icon: Icon(
+                  isFavorite
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                ),
+                tooltip: 'Favorit',
+              ),
+            ],
           ),
         ),
-        title: Text(title),
-        subtitle: Text(
-          'Kode: $code\nStatus: $status',
-        ),
-        isThreeLine: true,
       ),
     );
   }
@@ -292,6 +368,8 @@ class _FeedbackFormState extends State<FeedbackForm> {
   final TextEditingController commentController =
       TextEditingController();
 
+  bool isLoading = false;
+
   @override
   void dispose() {
     nameController.dispose();
@@ -300,14 +378,56 @@ class _FeedbackFormState extends State<FeedbackForm> {
     super.dispose();
   }
 
-  void submitForm() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Form berhasil dikirim.'),
-        ),
-      );
+  Future<void> submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    // Simulasi proses pengiriman data
+    await Future.delayed(
+      const Duration(seconds: 2),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // SnackBar sebagai feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Feedback berhasil dikirim.',
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    // AlertDialog sebagai konfirmasi
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Berhasil'),
+          content: const Text(
+            'Terima kasih. Feedback kamu berhasil dikirim.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -397,12 +517,25 @@ class _FeedbackFormState extends State<FeedbackForm> {
 
             const SizedBox(height: 20),
 
+            // Tombol Kirim
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
-                onPressed: submitForm,
-                icon: const Icon(Icons.send),
-                label: const Text('Kirim Feedback'),
+                onPressed: isLoading ? null : submitForm,
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.send),
+                label: Text(
+                  isLoading
+                      ? 'Mengirim...'
+                      : 'Kirim Feedback',
+                ),
               ),
             ),
 
