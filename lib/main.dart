@@ -4,47 +4,15 @@ const String studentName = 'I Ketut Alit Junaedi Wardana';
 const String studentId = '2415051050';
 
 const List<Map<String, dynamic>> courses = [
-  {
-    'code': 'FL001',
-    'title': 'Flutter UI Fundamentals',
-    'credits': 3,
-    'status': 'Selesai',
-  },
-  {
-    'code': 'FL002',
-    'title': 'Widget dan Layout Flutter',
-    'credits': 3,
-    'status': 'Berjalan',
-  },
-  {
-    'code': 'FL003',
-    'title': 'Responsive Layout',
-    'credits': 3,
-    'status': 'Berjalan',
-  },
-  {
-    'code': 'FL004',
-    'title': 'Navigation Flutter',
-    'credits': 3,
-    'status': 'Belum',
-  },
-  {
-    'code': 'FL005',
-    'title': 'User Interaction',
-    'credits': 3,
-    'status': 'Belum',
-  },
-  {
-    'code': 'FL006',
-    'title': 'Flutter Forms',
-    'credits': 3,
-    'status': 'Belum',
-  },
+  {'code': 'FL001', 'title': 'Flutter UI Fundamentals', 'credits': 3, 'status': 'Selesai'},
+  {'code': 'FL002', 'title': 'Widget dan Layout Flutter', 'credits': 3, 'status': 'Berjalan'},
+  {'code': 'FL003', 'title': 'Responsive Layout', 'credits': 3, 'status': 'Berjalan'},
+  {'code': 'FL004', 'title': 'Navigation Flutter', 'credits': 3, 'status': 'Belum'},
+  {'code': 'FL005', 'title': 'User Interaction', 'credits': 3, 'status': 'Belum'},
+  {'code': 'FL006', 'title': 'Flutter Forms', 'credits': 3, 'status': 'Belum'},
 ];
 
-void main() {
-  runApp(const CourseExplorerApp());
-}
+void main() => runApp(const CourseExplorerApp());
 
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
@@ -92,9 +60,7 @@ class _MainPageState extends State<MainPage> {
                 NavigationRail(
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (index) {
-                    setState(() {
-                      selectedIndex = index;
-                    });
+                    setState(() => selectedIndex = index);
                   },
                   labelType: NavigationRailLabelType.all,
                   destinations: const [
@@ -123,9 +89,7 @@ class _MainPageState extends State<MainPage> {
               : NavigationBar(
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (index) {
-                    setState(() {
-                      selectedIndex = index;
-                    });
+                    setState(() => selectedIndex = index);
                   },
                   destinations: const [
                     NavigationDestination(
@@ -183,7 +147,7 @@ class StudentIdentity extends StatelessWidget {
   }
 }
 
-// TAHAP 2: Parent menyimpan shared state.
+// TAHAP 3: Lifting State Up dan Single Source of Truth.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -192,6 +156,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Satu sumber state digunakan oleh kedua widget anak.
   bool isFavorite = false;
 
   void toggleFavorite() {
@@ -221,13 +186,13 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Eksperimen Shared Favorite',
+              'Tahap 3: Lifting State Up',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             const Text(
-              'Kedua widget anak menggunakan satu state favorit '
-              'yang sama dari parent.',
+              'HomePage menjadi satu-satunya pemilik state favorit. '
+              'Widget anak menerima nilai dan callback dari parent.',
             ),
             const SizedBox(height: 8),
             FavoriteDemoChild(
@@ -239,6 +204,18 @@ class _HomePageState extends State<HomePage> {
               title: 'Widget Anak B',
               isFavorite: isFavorite,
               onToggle: toggleFavorite,
+            ),
+            const SizedBox(height: 12),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.account_tree_outlined),
+                title: const Text('Single Source of Truth'),
+                subtitle: Text(
+                  isFavorite
+                      ? 'State pusat: Favorit aktif'
+                      : 'State pusat: Favorit tidak aktif',
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             Text(
@@ -277,11 +254,11 @@ class FavoriteDemoChild extends StatelessWidget {
           isFavorite ? 'Status: Favorit' : 'Status: Bukan favorit',
         ),
         trailing: IconButton(
+          tooltip: 'Ubah status favorit',
           onPressed: onToggle,
           icon: Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
           ),
-          tooltip: 'Ubah status favorit',
         ),
       ),
     );
@@ -297,7 +274,7 @@ class CoursesPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Courses')),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          int crossAxisCount;
+          final int crossAxisCount;
 
           if (constraints.maxWidth < 600) {
             crossAxisCount = 1;
@@ -358,9 +335,9 @@ class _CourseCardState extends State<CourseCard> {
   }
 
   void showLongPressDialog() {
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Informasi Course'),
           content: Text(
@@ -371,7 +348,7 @@ class _CourseCardState extends State<CourseCard> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Tutup'),
             ),
           ],
@@ -396,7 +373,7 @@ class _CourseCardState extends State<CourseCard> {
                 children: [
                   Expanded(
                     child: Text(
-                      widget.course['code'],
+                      widget.course['code'] as String,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -412,7 +389,7 @@ class _CourseCardState extends State<CourseCard> {
                 ],
               ),
               Text(
-                widget.course['title'],
+                widget.course['title'] as String,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 17,
@@ -428,9 +405,10 @@ class _CourseCardState extends State<CourseCard> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CourseDetailPage(course: widget.course),
+                      MaterialPageRoute<void>(
+                        builder: (_) => CourseDetailPage(
+                          course: widget.course,
+                        ),
                       ),
                     );
                   },
@@ -465,14 +443,14 @@ class CourseDetailPage extends StatelessWidget {
             const StudentIdentity(),
             const SizedBox(height: 20),
             Text(
-              course['title'],
+              course['title'] as String,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.code),
               title: const Text('Kode Course'),
-              subtitle: Text(course['code']),
+              subtitle: Text(course['code'] as String),
             ),
             ListTile(
               leading: const Icon(Icons.school),
@@ -482,19 +460,19 @@ class CourseDetailPage extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.info),
               title: const Text('Status'),
-              subtitle: Text(course['status']),
+              subtitle: Text(course['status'] as String),
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: () {
-                Navigator.pop(context, true);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      '${course['title']} berhasil ditandai selesai.',
+                      '${course['title']} ditandai selesai.',
                     ),
                   ),
                 );
+                Navigator.pop(context, true);
               },
               icon: const Icon(Icons.check),
               label: const Text('Tandai Selesai'),
@@ -526,17 +504,13 @@ class _FeedbackFormState extends State<FeedbackForm> {
       return;
     }
 
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -544,9 +518,9 @@ class _FeedbackFormState extends State<FeedbackForm> {
       ),
     );
 
-    showDialog(
+    showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Berhasil'),
           content: const Text(
@@ -554,7 +528,7 @@ class _FeedbackFormState extends State<FeedbackForm> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('OK'),
             ),
           ],
@@ -637,7 +611,9 @@ class _FeedbackFormState extends State<FeedbackForm> {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Icon(Icons.send),
                   label: Text(
