@@ -1,7 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'models/course.dart';
+import 'services/course_service.dart';
 
 const String studentName = 'I Ketut Alit Junaedi Wardana';
 const String studentId = '2415051050';
@@ -9,111 +10,35 @@ const String studentId = '2415051050';
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseState(),
+      create: (_) => CourseState()..loadCourses(),
       child: const CourseExplorerApp(),
     ),
   );
 }
 
-// MODEL COURSE
-class Course {
-  final String code;
-  final String title;
-  final int credits;
-  final String status;
-
-  const Course({
-    required this.code,
-    required this.title,
-    required this.credits,
-    required this.status,
-  });
-
-  factory Course.fromJson(Map<String, dynamic> json) {
-    return Course(
-      code: json['code'] as String,
-      title: json['title'] as String,
-      credits: (json['credits'] as num).toInt(),
-      status: json['status'] as String,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'code': code,
-      'title': title,
-      'credits': credits,
-      'status': status,
-    };
-  }
-}
-
-// DATA JSON CONTOH
-const String courseJsonData = '''
-[
-  {
-    "code": "FL001",
-    "title": "Flutter UI Fundamentals",
-    "credits": 3,
-    "status": "Selesai"
-  },
-  {
-    "code": "FL002",
-    "title": "Widget dan Layout Flutter",
-    "credits": 3,
-    "status": "Sedang Dipelajari"
-  },
-  {
-    "code": "FL003",
-    "title": "State Management",
-    "credits": 3,
-    "status": "Belum Dipelajari"
-  },
-  {
-    "code": "FL004",
-    "title": "Navigasi Aplikasi",
-    "credits": 2,
-    "status": "Belum Dipelajari"
-  },
-  {
-    "code": "FL005",
-    "title": "Form dan Validasi",
-    "credits": 2,
-    "status": "Belum Dipelajari"
-  },
-  {
-    "code": "FL006",
-    "title": "Arsitektur Aplikasi",
-    "credits": 3,
-    "status": "Belum Dipelajari"
-  }
-]
-''';
-
-final List<Course> courses =
-    (jsonDecode(courseJsonData) as List<dynamic>)
-        .map(
-          (item) => Course.fromJson(
-            item as Map<String, dynamic>,
-          ),
-        )
-        .toList();
-
-// SHARED STATE
 class CourseState extends ChangeNotifier {
-  final Set<String> _favorites = {};
+  final CourseService _service = CourseService();
 
-  bool isFavorite(String code) => _favorites.contains(code);
+  List<Course> courses = [];
+  final Set<String> favorites = {};
 
-  int get favoriteCount => _favorites.length;
+  Future<void> loadCourses() async {
+    try {
+      courses = await _service.loadCourses();
+      notifyListeners();
+    } catch (error) {
+      debugPrint('Gagal memuat data course: $error');
+    }
+  }
+
+  bool isFavorite(String code) => favorites.contains(code);
 
   void toggleFavorite(String code) {
-    if (_favorites.contains(code)) {
-      _favorites.remove(code);
+    if (favorites.contains(code)) {
+      favorites.remove(code);
     } else {
-      _favorites.add(code);
+      favorites.add(code);
     }
-
     notifyListeners();
   }
 }
@@ -127,9 +52,7 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const MainPage(),
@@ -147,183 +70,151 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
 
+  final List<Widget> pages = const [HomePage(), CoursesPage(), FeedbackPage()];
+
+  final List<String> titles = const ['Home', 'Courses', 'Feedback'];
+
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CourseState>();
+    final favoriteCount = context.watch<CourseState>().favorites.length;
+    final isWide = MediaQuery.sizeOf(context).width >= 840;
 
-    final pages = [
-      HomePage(
-        onOpenCourses: () {
-          setState(() {
-            selectedIndex = 1;
-          });
-        },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(titles[selectedIndex]),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Center(
+              child: Badge(
+                label: Text('$favoriteCount'),
+                child: const Icon(Icons.favorite),
+              ),
+            ),
+          ),
+        ],
       ),
-      const CoursesPage(),
-      const FeedbackPage(),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 840;
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Course Explorer'),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    const Icon(Icons.favorite),
-                    const SizedBox(width: 6),
-                    Text('${provider.favoriteCount}'),
-                  ],
+      body: Row(
+        children: [
+          if (isWide)
+            NavigationRail(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() => selectedIndex = index);
+              },
+              labelType: NavigationRailLabelType.all,
+              destinations: const [
+                NavigationRailDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: Text('Home'),
                 ),
-              ),
-            ],
+                NavigationRailDestination(
+                  icon: Icon(Icons.menu_book_outlined),
+                  selectedIcon: Icon(Icons.menu_book),
+                  label: Text('Courses'),
+                ),
+                NavigationRailDestination(
+                  icon: Icon(Icons.feedback_outlined),
+                  selectedIcon: Icon(Icons.feedback),
+                  label: Text('Feedback'),
+                ),
+              ],
+            ),
+          Expanded(
+            child: IndexedStack(index: selectedIndex, children: pages),
           ),
-          body: Row(
-            children: [
-              if (isWide)
-                NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) {
-                    setState(() {
-                      selectedIndex = index;
-                    });
-                  },
-                  labelType: NavigationRailLabelType.all,
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.menu_book_outlined),
-                      selectedIcon: Icon(Icons.menu_book),
-                      label: Text('Courses'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.feedback_outlined),
-                      selectedIcon: Icon(Icons.feedback),
-                      label: Text('Feedback'),
-                    ),
-                  ],
+        ],
+      ),
+      bottomNavigationBar: isWide
+          ? null
+          : NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) {
+                setState(() => selectedIndex = index);
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Home',
                 ),
-              Expanded(
-                child: IndexedStack(
-                  index: selectedIndex,
-                  children: pages,
+                NavigationDestination(
+                  icon: Icon(Icons.menu_book_outlined),
+                  selectedIcon: Icon(Icons.menu_book),
+                  label: 'Courses',
                 ),
+                NavigationDestination(
+                  icon: Icon(Icons.feedback_outlined),
+                  selectedIcon: Icon(Icons.feedback),
+                  label: 'Feedback',
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class StudentIdentity extends StatelessWidget {
+  const StudentIdentity({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const CircleAvatar(child: Icon(Icons.person)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    studentName,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 4),
+                  Text('NIM: $studentId'),
+                ],
               ),
-            ],
-          ),
-          bottomNavigationBar: isWide
-              ? null
-              : NavigationBar(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (index) {
-                    setState(() {
-                      selectedIndex = index;
-                    });
-                  },
-                  destinations: const [
-                    NavigationDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: 'Home',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.menu_book_outlined),
-                      selectedIcon: Icon(Icons.menu_book),
-                      label: 'Courses',
-                    ),
-                    NavigationDestination(
-                      icon: Icon(Icons.feedback_outlined),
-                      selectedIcon: Icon(Icons.feedback),
-                      label: 'Feedback',
-                    ),
-                  ],
-                ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class HomePage extends StatelessWidget {
-  final VoidCallback onOpenCourses;
-
-  const HomePage({
-    super.key,
-    required this.onOpenCourses,
-  });
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CourseState>();
+    final state = context.watch<CourseState>();
 
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       children: [
-        const StudentIdentity(),
-        const SizedBox(height: 24),
         Text(
-          'Selamat Datang!',
+          'Course Explorer',
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Jelajahi materi pembelajaran Flutter dan pantau '
-          'materi favorit Anda.',
-        ),
-        const SizedBox(height: 24),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.favorite,
-                  size: 36,
-                  color: Colors.red,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Jumlah Materi Favorit'),
-                      Text(
-                        '${provider.favoriteCount} materi',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        const Text('Jelajahi materi pembelajaran dan tandai course favoritmu.'),
         const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: onOpenCourses,
-          icon: const Icon(Icons.menu_book),
-          label: const Text('Lihat Semua Materi'),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Materi Unggulan',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        CourseCard(course: courses[0]),
-        CourseCard(course: courses[1]),
+        const StudentIdentity(),
+        const SizedBox(height: 16),
+        Text('Daftar Materi', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        if (state.courses.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else
+          ...state.courses.take(3).map((course) => CourseCard(course: course)),
       ],
     );
   }
@@ -334,28 +225,25 @@ class CoursesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 1000
-            ? 3
-            : constraints.maxWidth >= 600
-                ? 2
-                : 1;
+    final state = context.watch<CourseState>();
 
-        return GridView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: courses.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            mainAxisExtent: 190,
-          ),
-          itemBuilder: (context, index) {
-            return CourseCard(course: courses[index]);
-          },
-        );
-      },
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const StudentIdentity(),
+        const SizedBox(height: 16),
+        Text('Semua Materi', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 8),
+        if (state.courses.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else
+          ...state.courses.map((course) => CourseCard(course: course)),
+      ],
     );
   }
 }
@@ -363,63 +251,56 @@ class CoursesPage extends StatelessWidget {
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  const CourseCard({
-    super.key,
-    required this.course,
-  });
+  const CourseCard({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
+            const CircleAvatar(child: Icon(Icons.menu_book)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     course.code,
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
-                ),
-                Consumer<CourseState>(
-                  builder: (context, provider, child) {
-                    final isFavorite =
-                        provider.isFavorite(course.code);
+                  const SizedBox(height: 4),
+                  Text(
+                    course.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('${course.credits} SKS'),
+                  const SizedBox(height: 4),
+                  Text(course.status),
+                ],
+              ),
+            ),
+            Consumer<CourseState>(
+              builder: (context, state, child) {
+                final favorite = state.isFavorite(course.code);
 
-                    return IconButton(
-                      tooltip: isFavorite
-                          ? 'Hapus dari favorit'
-                          : 'Tambahkan ke favorit',
-                      onPressed: () {
-                        context
-                            .read<CourseState>()
-                            .toggleFavorite(course.code);
-                      },
-                      icon: Icon(
-                        isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : null,
-                      ),
-                    );
+                return IconButton(
+                  tooltip: favorite
+                      ? 'Hapus dari favorit'
+                      : 'Tambahkan ke favorit',
+                  onPressed: () {
+                    context.read<CourseState>().toggleFavorite(course.code);
                   },
-                ),
-              ],
-            ),
-            Text(
-              course.title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Text('${course.credits} SKS'),
-            const SizedBox(height: 4),
-            Text(
-              course.status,
-              style: Theme.of(context).textTheme.bodySmall,
+                  icon: Icon(
+                    favorite ? Icons.favorite : Icons.favorite_border,
+                    color: favorite ? Colors.red : null,
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -436,8 +317,7 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  final TextEditingController feedbackController =
-      TextEditingController();
+  final TextEditingController feedbackController = TextEditingController();
 
   @override
   void dispose() {
@@ -446,29 +326,29 @@ class _FeedbackPageState extends State<FeedbackPage> {
   }
 
   void submitFeedback() {
-    if (feedbackController.text.trim().isEmpty) {
+    final feedback = feedbackController.text.trim();
+
+    if (feedback.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Masukkan feedback terlebih dahulu.'),
-        ),
+        const SnackBar(content: Text('Feedback tidak boleh kosong.')),
       );
       return;
     }
 
-    final feedback = feedbackController.text.trim();
-
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Feedback Terkirim'),
-        content: Text(feedback),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tutup'),
-          ),
-        ],
-      ),
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Feedback Terkirim'),
+          content: Text('Terima kasih atas masukan: $feedback'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
 
     feedbackController.clear();
@@ -477,47 +357,30 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       children: [
         const StudentIdentity(),
-        const SizedBox(height: 24),
-        Text(
-          'Feedback',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
         const SizedBox(height: 16),
+        Text(
+          'Berikan Feedback',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 12),
         TextField(
           controller: feedbackController,
           maxLines: 4,
           decoration: const InputDecoration(
-            labelText: 'Tulis feedback',
-            hintText: 'Masukkan saran atau pendapat Anda',
             border: OutlineInputBorder(),
+            hintText: 'Tulis masukan untuk aplikasi...',
           ),
         ),
-        const SizedBox(height: 16),
-        FilledButton(
+        const SizedBox(height: 12),
+        FilledButton.icon(
           onPressed: submitFeedback,
-          child: const Text('Kirim Feedback'),
+          icon: const Icon(Icons.send),
+          label: const Text('Kirim Feedback'),
         ),
       ],
-    );
-  }
-}
-
-class StudentIdentity extends StatelessWidget {
-  const StudentIdentity({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Icon(Icons.person),
-        ),
-        title: Text(studentName),
-        subtitle: Text('NIM: $studentId'),
-      ),
     );
   }
 }

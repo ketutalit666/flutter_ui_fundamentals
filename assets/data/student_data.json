@@ -1,43 +1,40 @@
 {
-  "student": {
-    "name": "I Ketut Alit Junaedi Wardana",
-    "id": "2415051050"
-  },
-  "materials": [
+  "courses": [
     {
-      "title": "Flutter UI Fundamentals",
       "code": "FL001",
+      "title": "Flutter UI Fundamentals",
       "credits": 3,
-      "status": "Selesai",
-      "category": "UI"
+      "status": "Selesai"
     },
     {
-      "title": "Widget dan Layout Flutter",
       "code": "FL002",
+      "title": "Widget dan Layout Flutter",
       "credits": 3,
-      "status": "Selesai",
-      "category": "Layout"
+      "status": "Selesai"
     },
     {
-      "title": "State Management",
       "code": "FL003",
+      "title": "State Management",
       "credits": 3,
-      "status": "Selesai",
-      "category": "State"
+      "status": "Sedang Dipelajari"
     },
     {
-      "title": "Input dan Form Flutter",
       "code": "FL004",
-      "credits": 2,
-      "status": "Belum Selesai",
-      "category": "Input"
+      "title": "Navigasi Aplikasi",
+      "credits": 3,
+      "status": "Belum Dipelajari"
     },
     {
-      "title": "List dan Dynamic UI",
       "code": "FL005",
+      "title": "Form dan Validasi",
       "credits": 3,
-      "status": "Belum Selesai",
-      "category": "Dynamic UI"
+      "status": "Belum Dipelajari"
+    },
+    {
+      "code": "FL006",
+      "title": "Arsitektur Aplikasi",
+      "credits": 3,
+      "status": "Belum Dipelajari"
     }
   ]
 }
