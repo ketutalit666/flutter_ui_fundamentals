@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 const String studentName = 'I Ketut Alit Junaedi Wardana';
 const String studentId = '2415051050';
 
-void main() {
-  runApp(const CourseExplorerApp());
-}
-
 class Course {
   final String code;
   final String title;
@@ -26,45 +22,65 @@ const List<Course> courseList = [
     code: 'FL001',
     title: 'Flutter UI Fundamentals',
     credits: 3,
-    description:
-        'Mempelajari dasar pembuatan antarmuka aplikasi menggunakan Flutter.',
+    description: 'Mengenal dasar Flutter, widget, dan pembuatan antarmuka.',
   ),
   Course(
     code: 'FL002',
     title: 'Widget dan Layout Flutter',
     credits: 3,
-    description:
-        'Mempelajari widget, layout, dan penyusunan komponen antarmuka.',
+    description: 'Mempelajari layout, responsive UI, dan komposisi widget.',
   ),
   Course(
     code: 'FL003',
     title: 'State Management',
     credits: 3,
-    description:
-        'Mempelajari pengelolaan state dan pembaruan tampilan aplikasi.',
+    description: 'Mengelola state menggunakan setState dan ChangeNotifier.',
   ),
   Course(
     code: 'FL004',
     title: 'Navigasi Aplikasi',
     credits: 2,
-    description:
-        'Mempelajari perpindahan halaman dan pengiriman data antarscreen.',
+    description: 'Mempelajari perpindahan halaman dan pengiriman data.',
   ),
   Course(
     code: 'FL005',
     title: 'Form dan Validasi',
     credits: 2,
-    description:
-        'Mempelajari input pengguna, validasi form, dan umpan balik aplikasi.',
+    description: 'Membuat formulir dan memvalidasi input pengguna.',
   ),
   Course(
     code: 'FL006',
     title: 'Arsitektur Aplikasi',
     credits: 3,
-    description:
-        'Mempelajari pemisahan tanggung jawab dan struktur aplikasi.',
+    description: 'Memahami pemisahan tanggung jawab dalam aplikasi.',
   ),
 ];
+
+/// Tahap 5: state dan logika favorit dipisahkan dari UI.
+class CourseState extends ChangeNotifier {
+  final Set<String> favorites = {};
+
+  void toggleFavorite(String id) {
+    if (favorites.contains(id)) {
+      favorites.remove(id);
+    } else {
+      favorites.add(id);
+    }
+
+    // Memberi tahu widget listener bahwa state telah berubah.
+    notifyListeners();
+  }
+
+  bool isFavorite(String id) {
+    return favorites.contains(id);
+  }
+
+  int get favoriteCount => favorites.length;
+}
+
+void main() {
+  runApp(const CourseExplorerApp());
+}
 
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
@@ -75,9 +91,7 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const MainPage(),
@@ -95,91 +109,96 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = const [
-    HomePage(),
-    CoursesPage(),
-    FeedbackPage(),
-  ];
+  // Satu object state dipakai bersama oleh halaman terkait.
+  final CourseState courseState = CourseState();
 
-  final List<String> pageTitles = const [
-    'Home',
-    'Courses',
-    'Feedback',
-  ];
+  @override
+  void dispose() {
+    courseState.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool useRail = MediaQuery.of(context).size.width >= 840;
+    final pages = [
+      HomePage(courseState: courseState),
+      CoursesPage(courseState: courseState),
+      const FeedbackPage(),
+    ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Course Explorer - ${pageTitles[selectedIndex]}'),
-        centerTitle: false,
-      ),
-      body: Row(
-        children: [
-          if (useRail)
-            NavigationRail(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  selectedIndex = index;
-                });
-              },
-              labelType: NavigationRailLabelType.all,
-              destinations: const [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: Text('Home'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.menu_book_outlined),
-                  selectedIcon: Icon(Icons.menu_book),
-                  label: Text('Courses'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.feedback_outlined),
-                  selectedIcon: Icon(Icons.feedback),
-                  label: Text('Feedback'),
-                ),
-              ],
-            ),
-          Expanded(
-            child: IndexedStack(
-              index: selectedIndex,
-              children: pages,
-            ),
+    const pageTitles = ['Home', 'Courses', 'Feedback'];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 840;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(pageTitles[selectedIndex]),
+            centerTitle: false,
           ),
-        ],
-      ),
-      bottomNavigationBar: useRail
-          ? null
-          : NavigationBar(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (index) {
-                setState(() {
-                  selectedIndex = index;
-                });
-              },
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: 'Home',
+          body: Row(
+            children: [
+              if (isWide)
+                NavigationRail(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() => selectedIndex = index);
+                  },
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
+                      label: Text('Courses'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.feedback_outlined),
+                      selectedIcon: Icon(Icons.feedback),
+                      label: Text('Feedback'),
+                    ),
+                  ],
                 ),
-                NavigationDestination(
-                  icon: Icon(Icons.menu_book_outlined),
-                  selectedIcon: Icon(Icons.menu_book),
-                  label: 'Courses',
+              Expanded(
+                child: IndexedStack(
+                  index: selectedIndex,
+                  children: pages,
                 ),
-                NavigationDestination(
-                  icon: Icon(Icons.feedback_outlined),
-                  selectedIcon: Icon(Icons.feedback),
-                  label: 'Feedback',
+              ),
+            ],
+          ),
+          bottomNavigationBar: isWide
+              ? null
+              : NavigationBar(
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) {
+                    setState(() => selectedIndex = index);
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.menu_book_outlined),
+                      selectedIcon: Icon(Icons.menu_book),
+                      label: 'Courses',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.feedback_outlined),
+                      selectedIcon: Icon(Icons.feedback),
+                      label: 'Feedback',
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        );
+      },
     );
   }
 }
@@ -204,50 +223,28 @@ class StudentIdentity extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePage extends StatelessWidget {
+  final CourseState courseState;
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  bool isFavorite = false;
-
-  // Tahap 4: ValueNotifier untuk satu nilai sederhana.
-  final ValueNotifier<int> favoriteCount = ValueNotifier<int>(0);
-
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
-
-    // Memperbarui nilai yang diamati ValueListenableBuilder.
-    favoriteCount.value = isFavorite ? 1 : 0;
-  }
-
-  @override
-  void dispose() {
-    favoriteCount.dispose();
-    super.dispose();
-  }
+  const HomePage({
+    super.key,
+    required this.courseState,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       children: [
         Text(
-          'Welcome to Course Explorer',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          'Course Explorer',
+          style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
         const Text(
-          'Jelajahi materi pembelajaran dan eksperimen state management.',
+          'Jelajahi materi pembelajaran dan simpan materi favorit.',
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         const StudentIdentity(),
         const SizedBox(height: 16),
         Card(
@@ -257,67 +254,53 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tahap 4: ValueNotifier',
+                  'Tahap 5: ChangeNotifier',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Tekan tombol hati untuk mengubah status favorit. '
-                  'Angka di bawah akan diperbarui melalui '
-                  'ValueListenableBuilder.',
+                  'CourseState menyimpan data favorit. '
+                  'notifyListeners() memberi tahu widget ketika data berubah.',
                 ),
                 const SizedBox(height: 16),
-                FavoriteDemoChild(
-                  title: 'Komponen Favorit',
-                  isFavorite: isFavorite,
-                  onToggle: toggleFavorite,
-                ),
-                const SizedBox(height: 12),
-                ValueListenableBuilder<int>(
-                  valueListenable: favoriteCount,
-                  builder: (context, value, child) {
-                    return Card(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer,
-                      child: ListTile(
-                        leading: const Icon(Icons.favorite),
-                        title: const Text('Jumlah Favorit Aktif'),
-                        trailing: Text(
-                          '$value',
-                          style:
-                              Theme.of(context).textTheme.headlineSmall,
+                AnimatedBuilder(
+                  animation: courseState,
+                  builder: (context, child) {
+                    return Row(
+                      children: [
+                        const Icon(
+                          Icons.favorite,
+                          color: Colors.red,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Jumlah favorit: ${courseState.favoriteCount}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 const Text(
-                  'Nilai berubah melalui favoriteCount.value, '
-                  'tanpa memanggil setState() untuk memperbarui '
-                  'angka yang diamati.',
+                  'Coba tekan tombol hati pada salah satu materi di halaman Courses.',
                 ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ringkasan Course Explorer',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text('Total materi: ${courseList.length}'),
-                const Text('Layout responsif dan navigasi tetap tersedia.'),
-              ],
-            ),
+        Text(
+          'Materi Pilihan',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        ...courseList.take(3).map(
+          (course) => CourseFavoriteTile(
+            course: course,
+            courseState: courseState,
           ),
         ),
       ],
@@ -325,65 +308,48 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class FavoriteDemoChild extends StatelessWidget {
-  final String title;
-  final bool isFavorite;
-  final VoidCallback onToggle;
-
-  const FavoriteDemoChild({
-    super.key,
-    required this.title,
-    required this.isFavorite,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(
-          isFavorite ? 'Status: Favorit aktif' : 'Status: Belum favorit',
-        ),
-        trailing: IconButton(
-          tooltip: isFavorite
-              ? 'Hapus dari favorit'
-              : 'Tambahkan ke favorit',
-          onPressed: onToggle,
-          icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? Colors.red : null,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class CoursesPage extends StatelessWidget {
-  const CoursesPage({super.key});
+  final CourseState courseState;
+
+  const CoursesPage({
+    super.key,
+    required this.courseState,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final int columnCount = constraints.maxWidth >= 1000
-            ? 3
-            : constraints.maxWidth >= 600
-                ? 2
-                : 1;
+        final width = constraints.maxWidth;
+        final columns = width >= 1000 ? 3 : width >= 600 ? 2 : 1;
 
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: courseList.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columnCount,
+            crossAxisCount: columns,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: columnCount == 1 ? 2.0 : 1.35,
+            mainAxisExtent: 190,
           ),
           itemBuilder: (context, index) {
-            return CourseCard(course: courseList[index]);
+            final course = courseList[index];
+
+            return CourseCard(
+              course: course,
+              courseState: courseState,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CourseDetailPage(
+                      course: course,
+                      courseState: courseState,
+                    ),
+                  ),
+                );
+              },
+            );
           },
         );
       },
@@ -393,52 +359,114 @@ class CoursesPage extends StatelessWidget {
 
 class CourseCard extends StatelessWidget {
   final Course course;
+  final CourseState courseState;
+  final VoidCallback onTap;
 
   const CourseCard({
     super.key,
     required this.course,
+    required this.courseState,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (context) => CourseDetailPage(course: course),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              course.code,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 6),
+            Expanded(
+              child: InkWell(
+                onTap: onTap,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    course.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ),
+            ),
+            Text('${course.credits} SKS'),
+            const SizedBox(height: 4),
+            AnimatedBuilder(
+              animation: courseState,
+              builder: (context, child) {
+                final favorite = courseState.isFavorite(course.code);
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        favorite ? 'Favorit' : 'Belum favorit',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: favorite
+                          ? 'Hapus dari favorit'
+                          : 'Tambahkan ke favorit',
+                      onPressed: () {
+                        courseState.toggleFavorite(course.code);
+                      },
+                      icon: Icon(
+                        favorite ? Icons.favorite : Icons.favorite_border,
+                        color: favorite ? Colors.red : null,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CourseFavoriteTile extends StatelessWidget {
+  final Course course;
+  final CourseState courseState;
+
+  const CourseFavoriteTile({
+    super.key,
+    required this.course,
+    required this.courseState,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: AnimatedBuilder(
+        animation: courseState,
+        builder: (context, child) {
+          final favorite = courseState.isFavorite(course.code);
+
+          return ListTile(
+            leading: const Icon(Icons.menu_book),
+            title: Text(course.title),
+            subtitle: Text('${course.code} • ${course.credits} SKS'),
+            trailing: IconButton(
+              tooltip: favorite ? 'Hapus favorit' : 'Jadikan favorit',
+              onPressed: () {
+                courseState.toggleFavorite(course.code);
+              },
+              icon: Icon(
+                favorite ? Icons.favorite : Icons.favorite_border,
+                color: favorite ? Colors.red : null,
+              ),
             ),
           );
         },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.menu_book, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                course.code,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                course.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const Spacer(),
-              Text('${course.credits} SKS'),
-              const SizedBox(height: 4),
-              const Text('Tekan untuk melihat detail'),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -446,43 +474,49 @@ class CourseCard extends StatelessWidget {
 
 class CourseDetailPage extends StatelessWidget {
   final Course course;
+  final CourseState courseState;
 
   const CourseDetailPage({
     super.key,
     required this.course,
+    required this.courseState,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Materi')),
+      appBar: AppBar(title: Text(course.code)),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         children: [
           const StudentIdentity(),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course.code,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    course.title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 12),
-                  Text('Jumlah SKS: ${course.credits}'),
-                  const SizedBox(height: 12),
-                  Text(course.description),
-                ],
-              ),
-            ),
+          Text(
+            course.title,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 8),
+          Text('${course.credits} SKS'),
+          const SizedBox(height: 16),
+          Text(course.description),
+          const SizedBox(height: 16),
+          AnimatedBuilder(
+            animation: courseState,
+            builder: (context, child) {
+              final favorite = courseState.isFavorite(course.code);
+
+              return FilledButton.icon(
+                onPressed: () {
+                  courseState.toggleFavorite(course.code);
+                },
+                icon: Icon(
+                  favorite ? Icons.favorite : Icons.favorite_border,
+                ),
+                label: Text(
+                  favorite ? 'Hapus dari Favorit' : 'Tambahkan ke Favorit',
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -498,37 +532,33 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController feedbackController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _feedbackController = TextEditingController();
 
   @override
   void dispose() {
-    nameController.dispose();
-    feedbackController.dispose();
+    _nameController.dispose();
+    _feedbackController.dispose();
     super.dispose();
   }
 
-  void submitFeedback() {
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
-
-    FocusScope.of(context).unfocus();
+  void _submitFeedback() {
+    if (!_formKey.currentState!.validate()) return;
 
     showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Feedback Terkirim'),
           content: Text(
-            'Terima kasih, ${nameController.text.trim()}. '
-            'Feedback kamu berhasil divalidasi.',
+            'Terima kasih, ${_nameController.text.trim()}! '
+            'Feedback Anda berhasil dicatat.',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Tutup'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -539,25 +569,24 @@ class _FeedbackPageState extends State<FeedbackPage> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       children: [
-        Text(
-          'Feedback',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 8),
         const StudentIdentity(),
         const SizedBox(height: 16),
+        Text(
+          'Feedback',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 12),
         Form(
-          key: formKey,
+          key: _formKey,
           child: Column(
             children: [
               TextFormField(
-                controller: nameController,
+                controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Nama',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -566,16 +595,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextFormField(
-                controller: feedbackController,
-                minLines: 3,
-                maxLines: 5,
+                controller: _feedbackController,
+                maxLines: 4,
                 decoration: const InputDecoration(
                   labelText: 'Masukkan feedback',
-                  alignLabelWithHint: true,
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.comment_outlined),
+                  alignLabelWithHint: true,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -587,10 +614,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: submitFeedback,
-                  icon: const Icon(Icons.send),
-                  label: const Text('Kirim Feedback'),
+                child: FilledButton(
+                  onPressed: _submitFeedback,
+                  child: const Text('Kirim Feedback'),
                 ),
               ),
             ],
