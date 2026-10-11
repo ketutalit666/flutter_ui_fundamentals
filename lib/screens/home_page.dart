@@ -41,9 +41,7 @@ class HomePage extends StatelessWidget {
             ],
           ),
         ),
-        const Expanded(
-          child: CourseContent(limit: 3),
-        ),
+        const Expanded(child: CourseContent(limit: 3)),
       ],
     );
   }

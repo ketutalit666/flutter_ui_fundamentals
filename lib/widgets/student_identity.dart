@@ -12,10 +12,7 @@ class StudentIdentity extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const CircleAvatar(
-              radius: 28,
-              child: Icon(Icons.person, size: 32),
-            ),
+            const CircleAvatar(radius: 28, child: Icon(Icons.person, size: 32)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

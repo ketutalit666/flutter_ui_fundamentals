@@ -3,14 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../models/course.dart';
 import '../providers/course_provider.dart';
+import '../screens/detail_page.dart';
 
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  const CourseCard({
-    super.key,
-    required this.course,
-  });
+  const CourseCard({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
@@ -19,46 +17,32 @@ class CourseCard extends StatelessWidget {
         final favorite = provider.isFavorite(course.code);
 
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  child: Text(course.code.substring(0, 2)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        course.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 6),
-                      Text('Kode: ${course.code}'),
-                      Text('SKS: ${course.credits}'),
-                      Text('Status: ${course.status}'),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: favorite
-                      ? 'Hapus dari favorit'
-                      : 'Tambahkan ke favorit',
-                  onPressed: () {
-                    context
-                        .read<CourseProvider>()
-                        .toggleFavorite(course.code);
-                  },
-                  icon: Icon(
-                    favorite ? Icons.favorite : Icons.favorite_border,
-                    color: favorite ? Colors.red : null,
-                  ),
-                ),
-              ],
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => DetailPage(course: course)),
+              );
+            },
+            leading: CircleAvatar(child: Text(course.code.substring(0, 2))),
+            title: Text(
+              course.title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(
+              '${course.code} • ${course.credits} SKS\nStatus: ${course.status}',
+            ),
+            isThreeLine: true,
+            trailing: IconButton(
+              tooltip: favorite ? 'Hapus dari favorit' : 'Tambahkan ke favorit',
+              icon: Icon(
+                favorite ? Icons.star : Icons.star_border,
+                color: favorite ? Colors.amber : null,
+              ),
+              onPressed: () {
+                context.read<CourseProvider>().toggleFavorite(course.code);
+              },
             ),
           ),
         );

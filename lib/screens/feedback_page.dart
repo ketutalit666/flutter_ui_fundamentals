@@ -23,9 +23,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Terima kasih atas feedback Anda!'),
-      ),
+      const SnackBar(content: Text('Terima kasih atas feedback Anda!')),
     );
 
     _feedbackController.clear();
@@ -41,10 +39,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Feedback',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('Feedback', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
             const Text(
               'Tuliskan saran atau masukan untuk aplikasi Course Explorer.',

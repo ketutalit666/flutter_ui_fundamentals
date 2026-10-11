@@ -6,7 +6,6 @@ import 'repositories/course_repository.dart';
 import 'screens/main_page.dart';
 import 'services/course_service.dart';
 
-
 export 'student_info.dart';
 
 void main() {
@@ -29,16 +28,10 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-        ),
-        cardTheme: const CardThemeData(
-          elevation: 1,
-        ),
+        appBarTheme: const AppBarTheme(centerTitle: false),
+        cardTheme: const CardThemeData(elevation: 1),
       ),
       home: const MainPage(),
     );
