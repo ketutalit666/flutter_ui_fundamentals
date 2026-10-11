@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 const String studentName = 'I Ketut Alit Junaedi Wardana';
 const String studentId = '2415051050';
@@ -22,41 +23,40 @@ const List<Course> courseList = [
     code: 'FL001',
     title: 'Flutter UI Fundamentals',
     credits: 3,
-    description: 'Mengenal dasar Flutter, widget, dan pembuatan antarmuka.',
+    description: 'Mengenal dasar Flutter, widget, dan antarmuka.',
   ),
   Course(
     code: 'FL002',
     title: 'Widget dan Layout Flutter',
     credits: 3,
-    description: 'Mempelajari layout, responsive UI, dan komposisi widget.',
+    description: 'Mempelajari layout dan responsive UI.',
   ),
   Course(
     code: 'FL003',
     title: 'State Management',
     credits: 3,
-    description: 'Mengelola state menggunakan setState dan ChangeNotifier.',
+    description: 'Mengelola state dengan setState dan ChangeNotifier.',
   ),
   Course(
     code: 'FL004',
     title: 'Navigasi Aplikasi',
     credits: 2,
-    description: 'Mempelajari perpindahan halaman dan pengiriman data.',
+    description: 'Mempelajari navigasi dan pengiriman data.',
   ),
   Course(
     code: 'FL005',
     title: 'Form dan Validasi',
     credits: 2,
-    description: 'Membuat formulir dan memvalidasi input pengguna.',
+    description: 'Membuat formulir dan validasi input.',
   ),
   Course(
     code: 'FL006',
     title: 'Arsitektur Aplikasi',
     credits: 3,
-    description: 'Memahami pemisahan tanggung jawab dalam aplikasi.',
+    description: 'Memahami pemisahan tanggung jawab aplikasi.',
   ),
 ];
 
-/// Tahap 5: state dan logika favorit dipisahkan dari UI.
 class CourseState extends ChangeNotifier {
   final Set<String> favorites = {};
 
@@ -66,20 +66,21 @@ class CourseState extends ChangeNotifier {
     } else {
       favorites.add(id);
     }
-
-    // Memberi tahu widget listener bahwa state telah berubah.
     notifyListeners();
   }
 
-  bool isFavorite(String id) {
-    return favorites.contains(id);
-  }
+  bool isFavorite(String id) => favorites.contains(id);
 
   int get favoriteCount => favorites.length;
 }
 
 void main() {
-  runApp(const CourseExplorerApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CourseState(),
+      child: const CourseExplorerApp(),
+    ),
+  );
 }
 
 class CourseExplorerApp extends StatelessWidget {
@@ -109,43 +110,34 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
 
-  // Satu object state dipakai bersama oleh halaman terkait.
-  final CourseState courseState = CourseState();
-
-  @override
-  void dispose() {
-    courseState.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Mengambil state yang disediakan oleh ChangeNotifierProvider.
+    final courseState = Provider.of<CourseState>(context);
+
     final pages = [
       HomePage(courseState: courseState),
       CoursesPage(courseState: courseState),
       const FeedbackPage(),
     ];
 
-    const pageTitles = ['Home', 'Courses', 'Feedback'];
+    const titles = ['Home', 'Courses', 'Feedback'];
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 840;
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(pageTitles[selectedIndex]),
-            centerTitle: false,
-          ),
+          appBar: AppBar(title: Text(titles[selectedIndex])),
           body: Row(
             children: [
               if (isWide)
                 NavigationRail(
                   selectedIndex: selectedIndex,
+                  labelType: NavigationRailLabelType.all,
                   onDestinationSelected: (index) {
                     setState(() => selectedIndex = index);
                   },
-                  labelType: NavigationRailLabelType.all,
                   destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.home_outlined),
@@ -210,9 +202,7 @@ class StudentIdentity extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: ListTile(
-        leading: const CircleAvatar(
-          child: Icon(Icons.person),
-        ),
+        leading: const CircleAvatar(child: Icon(Icons.person)),
         title: const Text(
           studentName,
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -226,10 +216,7 @@ class StudentIdentity extends StatelessWidget {
 class HomePage extends StatelessWidget {
   final CourseState courseState;
 
-  const HomePage({
-    super.key,
-    required this.courseState,
-  });
+  const HomePage({super.key, required this.courseState});
 
   @override
   Widget build(BuildContext context) {
@@ -241,9 +228,7 @@ class HomePage extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Jelajahi materi pembelajaran dan simpan materi favorit.',
-        ),
+        const Text('Jelajahi materi pembelajaran dan simpan favorit.'),
         const SizedBox(height: 12),
         const StudentIdentity(),
         const SizedBox(height: 16),
@@ -254,49 +239,37 @@ class HomePage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tahap 5: ChangeNotifier',
+                  'Tahap 6: Provider Setup',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'CourseState menyimpan data favorit. '
-                  'notifyListeners() memberi tahu widget ketika data berubah.',
+                  'CourseState disediakan melalui ChangeNotifierProvider '
+                  'agar dapat diakses oleh widget di bawahnya.',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 AnimatedBuilder(
                   animation: courseState,
-                  builder: (context, child) {
-                    return Row(
-                      children: [
-                        const Icon(
-                          Icons.favorite,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Jumlah favorit: ${courseState.favoriteCount}',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Coba tekan tombol hati pada salah satu materi di halaman Courses.',
+                  builder: (context, child) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    title: Text(
+                      'Jumlah favorit: ${courseState.favoriteCount}',
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
           'Materi Pilihan',
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 8),
         ...courseList.take(3).map(
           (course) => CourseFavoriteTile(
             course: course,
@@ -311,10 +284,7 @@ class HomePage extends StatelessWidget {
 class CoursesPage extends StatelessWidget {
   final CourseState courseState;
 
-  const CoursesPage({
-    super.key,
-    required this.courseState,
-  });
+  const CoursesPage({super.key, required this.courseState});
 
   @override
   Widget build(BuildContext context) {
@@ -378,10 +348,7 @@ class CourseCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              course.code,
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+            Text(course.code),
             const SizedBox(height: 6),
             Expanded(
               child: InkWell(
@@ -396,7 +363,6 @@ class CourseCard extends StatelessWidget {
               ),
             ),
             Text('${course.credits} SKS'),
-            const SizedBox(height: 4),
             AnimatedBuilder(
               animation: courseState,
               builder: (context, child) {
@@ -407,7 +373,6 @@ class CourseCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         favorite ? 'Favorit' : 'Belum favorit',
-                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
                     IconButton(
@@ -457,9 +422,7 @@ class CourseFavoriteTile extends StatelessWidget {
             subtitle: Text('${course.code} • ${course.credits} SKS'),
             trailing: IconButton(
               tooltip: favorite ? 'Hapus favorit' : 'Jadikan favorit',
-              onPressed: () {
-                courseState.toggleFavorite(course.code);
-              },
+              onPressed: () => courseState.toggleFavorite(course.code),
               icon: Icon(
                 favorite ? Icons.favorite : Icons.favorite_border,
                 color: favorite ? Colors.red : null,
@@ -506,9 +469,7 @@ class CourseDetailPage extends StatelessWidget {
               final favorite = courseState.isFavorite(course.code);
 
               return FilledButton.icon(
-                onPressed: () {
-                  courseState.toggleFavorite(course.code);
-                },
+                onPressed: () => courseState.toggleFavorite(course.code),
                 icon: Icon(
                   favorite ? Icons.favorite : Icons.favorite_border,
                 ),
@@ -548,21 +509,19 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
     showDialog<void>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Feedback Terkirim'),
-          content: Text(
-            'Terima kasih, ${_nameController.text.trim()}! '
-            'Feedback Anda berhasil dicatat.',
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Feedback Terkirim'),
+        content: Text(
+          'Terima kasih, ${_nameController.text.trim()}! '
+          'Feedback Anda berhasil dicatat.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
