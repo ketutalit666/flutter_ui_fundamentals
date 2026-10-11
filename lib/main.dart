@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +15,91 @@ void main() {
   );
 }
 
+// MODEL COURSE
+class Course {
+  final String code;
+  final String title;
+  final int credits;
+  final String status;
+
+  const Course({
+    required this.code,
+    required this.title,
+    required this.credits,
+    required this.status,
+  });
+
+  factory Course.fromJson(Map<String, dynamic> json) {
+    return Course(
+      code: json['code'] as String,
+      title: json['title'] as String,
+      credits: (json['credits'] as num).toInt(),
+      status: json['status'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'code': code,
+      'title': title,
+      'credits': credits,
+      'status': status,
+    };
+  }
+}
+
+// DATA JSON CONTOH
+const String courseJsonData = '''
+[
+  {
+    "code": "FL001",
+    "title": "Flutter UI Fundamentals",
+    "credits": 3,
+    "status": "Selesai"
+  },
+  {
+    "code": "FL002",
+    "title": "Widget dan Layout Flutter",
+    "credits": 3,
+    "status": "Sedang Dipelajari"
+  },
+  {
+    "code": "FL003",
+    "title": "State Management",
+    "credits": 3,
+    "status": "Belum Dipelajari"
+  },
+  {
+    "code": "FL004",
+    "title": "Navigasi Aplikasi",
+    "credits": 2,
+    "status": "Belum Dipelajari"
+  },
+  {
+    "code": "FL005",
+    "title": "Form dan Validasi",
+    "credits": 2,
+    "status": "Belum Dipelajari"
+  },
+  {
+    "code": "FL006",
+    "title": "Arsitektur Aplikasi",
+    "credits": 3,
+    "status": "Belum Dipelajari"
+  }
+]
+''';
+
+final List<Course> courses =
+    (jsonDecode(courseJsonData) as List<dynamic>)
+        .map(
+          (item) => Course.fromJson(
+            item as Map<String, dynamic>,
+          ),
+        )
+        .toList();
+
+// SHARED STATE
 class CourseState extends ChangeNotifier {
   final Set<String> _favorites = {};
 
@@ -30,59 +117,6 @@ class CourseState extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-class Course {
-  final String code;
-  final String title;
-  final int credits;
-  final String status;
-
-  const Course({
-    required this.code,
-    required this.title,
-    required this.credits,
-    required this.status,
-  });
-}
-
-const List<Course> courses = [
-  Course(
-    code: 'FL001',
-    title: 'Flutter UI Fundamentals',
-    credits: 3,
-    status: 'Selesai',
-  ),
-  Course(
-    code: 'FL002',
-    title: 'Widget dan Layout Flutter',
-    credits: 3,
-    status: 'Sedang Dipelajari',
-  ),
-  Course(
-    code: 'FL003',
-    title: 'State Management',
-    credits: 3,
-    status: 'Belum Dipelajari',
-  ),
-  Course(
-    code: 'FL004',
-    title: 'Navigasi Aplikasi',
-    credits: 2,
-    status: 'Belum Dipelajari',
-  ),
-  Course(
-    code: 'FL005',
-    title: 'Form dan Validasi',
-    credits: 2,
-    status: 'Belum Dipelajari',
-  ),
-  Course(
-    code: 'FL006',
-    title: 'Arsitektur Aplikasi',
-    credits: 3,
-    status: 'Belum Dipelajari',
-  ),
-];
 
 class CourseExplorerApp extends StatelessWidget {
   const CourseExplorerApp({super.key});
@@ -115,7 +149,6 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // watch() mendengarkan perubahan CourseState.
     final provider = context.watch<CourseState>();
 
     final pages = [
@@ -230,7 +263,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // watch() membuat HomePage mendengarkan perubahan jumlah favorit.
     final provider = context.watch<CourseState>();
 
     return ListView(
@@ -342,6 +374,7 @@ class CourseCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -352,8 +385,6 @@ class CourseCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ),
-
-                // Consumer membatasi rebuild pada bagian tombol favorit.
                 Consumer<CourseState>(
                   builder: (context, provider, child) {
                     final isFavorite =
@@ -364,7 +395,6 @@ class CourseCard extends StatelessWidget {
                           ? 'Hapus dari favorit'
                           : 'Tambahkan ke favorit',
                       onPressed: () {
-                        // read() hanya mengambil object untuk menjalankan aksi.
                         context
                             .read<CourseState>()
                             .toggleFavorite(course.code);
@@ -384,7 +414,7 @@ class CourseCard extends StatelessWidget {
               course.title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const Spacer(),
+            const SizedBox(height: 12),
             Text('${course.credits} SKS'),
             const SizedBox(height: 4),
             Text(
@@ -425,11 +455,13 @@ class _FeedbackPageState extends State<FeedbackPage> {
       return;
     }
 
+    final feedback = feedbackController.text.trim();
+
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Feedback Terkirim'),
-        content: Text(feedbackController.text.trim()),
+        content: Text(feedback),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -478,13 +510,13 @@ class StudentIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return const Card(
       child: ListTile(
-        leading: const CircleAvatar(
+        leading: CircleAvatar(
           child: Icon(Icons.person),
         ),
-        title: const Text(studentName),
-        subtitle: const Text('NIM: $studentId'),
+        title: Text(studentName),
+        subtitle: Text('NIM: $studentId'),
       ),
     );
   }
