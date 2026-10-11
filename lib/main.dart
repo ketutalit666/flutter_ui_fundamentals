@@ -6,14 +6,13 @@ import 'repositories/course_repository.dart';
 import 'screens/main_page.dart';
 import 'services/course_service.dart';
 
-export 'student_info.dart';
-
 void main() {
-  final repository = CourseRepository(CourseService());
+  final courseService = CourseService();
+  final courseRepository = CourseRepository(courseService);
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(repository)..loadCourses(),
+      create: (_) => CourseProvider(courseRepository)..loadCourses(),
       child: const CourseExplorerApp(),
     ),
   );
