@@ -1,17 +1,35 @@
-# flutter_ui_fundamentals
+# Course Explorer v2
 
-A new Flutter project.
+Aplikasi Flutter untuk menampilkan materi pembelajaran dengan Provider dan arsitektur yang terstruktur.
 
-## Getting Started
+## Identitas Mahasiswa
 
-This project is a starting point for a Flutter application.
+- Nama: I Ketut Alit Junaedi Wardana
+- NIM: 2415051050
 
-A few resources to get you started if this is your first Flutter project:
+## Struktur dan Tanggung Jawab Folder
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- **models/**: Mendefinisikan struktur data, seperti `Course`, serta parsing JSON.
+- **services/**: Mengambil dan membaca data dari sumber data, termasuk file JSON.
+- **repositories/**: Menjadi perantara antara Provider dan Service untuk mengakses data.
+- **providers/**: Mengelola state aplikasi, seperti daftar course, loading, error, dan favorite.
+- **screens/**: Menyusun halaman aplikasi, seperti Home, Courses, Favorites, Detail, dan Feedback.
+- **widgets/**: Menyediakan komponen UI yang dapat digunakan kembali.
+- **main.dart**: Menyiapkan aplikasi, dependency, Provider, dan konfigurasi tema.
+- **student_info.dart**: Menyimpan konstanta identitas mahasiswa.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Arah Dependency
+
+Alur pengambilan data mengikuti:
+
+Screens/Widgets → Provider → Repository → Service/Data Source.
+
+UI tidak membaca JSON secara langsung. Provider menerima Repository sebagai dependency, sedangkan Repository menggunakan Service untuk mendapatkan data.
+
+## State Management
+
+Provider mengelola state daftar course dan favorite. Perubahan state diberitahukan melalui `notifyListeners()`, sehingga widget yang mendengarkan perubahan dapat diperbarui.
+
+## Penanganan Data
+
+Course dimuat secara asynchronous dari file JSON. Aplikasi menangani kondisi loading, error, dan data berhasil dimuat.
