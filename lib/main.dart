@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'models/course.dart';
+import 'providers/course_provider.dart';
 import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
 
@@ -9,39 +10,14 @@ const String studentName = 'I Ketut Alit Junaedi Wardana';
 const String studentId = '2415051050';
 
 void main() {
+  final repository = CourseRepository(CourseService());
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseState()..loadCourses(),
+      create: (_) => CourseProvider(repository)..loadCourses(),
       child: const CourseExplorerApp(),
     ),
   );
-}
-
-class CourseState extends ChangeNotifier {
-  final CourseRepository _repository = CourseRepository(CourseService());
-
-  List<Course> courses = [];
-  final Set<String> favorites = {};
-
-  Future<void> loadCourses() async {
-    try {
-      courses = await _repository.getCourses();
-      notifyListeners();
-    } catch (error) {
-      debugPrint('Gagal memuat data course: $error');
-    }
-  }
-
-  bool isFavorite(String code) => favorites.contains(code);
-
-  void toggleFavorite(String code) {
-    if (favorites.contains(code)) {
-      favorites.remove(code);
-    } else {
-      favorites.add(code);
-    }
-    notifyListeners();
-  }
 }
 
 class CourseExplorerApp extends StatelessWidget {
@@ -53,9 +29,7 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
       home: const MainPage(),
@@ -73,21 +47,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = const [
-    HomePage(),
-    CoursesPage(),
-    FeedbackPage(),
-  ];
+  final List<Widget> pages = const [HomePage(), CoursesPage(), FeedbackPage()];
 
-  final List<String> titles = const [
-    'Home',
-    'Courses',
-    'Feedback',
-  ];
+  final List<String> titles = const ['Home', 'Courses', 'Feedback'];
 
   @override
   Widget build(BuildContext context) {
-    final favoriteCount = context.watch<CourseState>().favorites.length;
+    final favoriteCount = context.watch<CourseProvider>().favorites.length;
     final isWide = MediaQuery.sizeOf(context).width >= 840;
 
     return Scaffold(
@@ -133,10 +99,7 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
           Expanded(
-            child: IndexedStack(
-              index: selectedIndex,
-              children: pages,
-            ),
+            child: IndexedStack(index: selectedIndex, children: pages),
           ),
         ],
       ),
@@ -179,9 +142,7 @@ class StudentIdentity extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const CircleAvatar(
-              child: Icon(Icons.person),
-            ),
+            const CircleAvatar(child: Icon(Icons.person)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -208,7 +169,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<CourseState>();
+    final state = context.watch<CourseProvider>();
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -218,28 +179,13 @@ class HomePage extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Jelajahi materi pembelajaran dan tandai course favoritmu.',
-        ),
+        const Text('Jelajahi materi pembelajaran dan tandai course favoritmu.'),
         const SizedBox(height: 16),
         const StudentIdentity(),
         const SizedBox(height: 16),
-        Text(
-          'Daftar Materi',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+        Text('Daftar Materi', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        if (state.courses.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else
-          ...state.courses.take(3).map(
-                (course) => CourseCard(course: course),
-              ),
+        CourseContent(state: state, limit: 3),
       ],
     );
   }
@@ -250,30 +196,78 @@ class CoursesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<CourseState>();
+    final state = context.watch<CourseProvider>();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         const StudentIdentity(),
         const SizedBox(height: 16),
-        Text(
-          'Semua Materi',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        Text('Semua Materi', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
-        if (state.courses.isEmpty)
-          const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
-            ),
-          )
-        else
-          ...state.courses.map(
-            (course) => CourseCard(course: course),
-          ),
+        CourseContent(state: state),
       ],
+    );
+  }
+}
+
+class CourseContent extends StatelessWidget {
+  final CourseProvider state;
+  final int? limit;
+
+  const CourseContent({super.key, required this.state, this.limit});
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (state.error != null) {
+      return Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 32),
+              const SizedBox(height: 8),
+              const Text(
+                'Materi tidak dapat dimuat.',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              SelectableText(state.error!),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () {
+                  context.read<CourseProvider>().loadCourses();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (state.courses.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('Belum ada materi yang tersedia.'),
+      );
+    }
+
+    final courses = limit == null
+        ? state.courses
+        : state.courses.take(limit!).toList();
+
+    return Column(
+      children: courses.map((course) => CourseCard(course: course)).toList(),
     );
   }
 }
@@ -281,10 +275,7 @@ class CoursesPage extends StatelessWidget {
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  const CourseCard({
-    super.key,
-    required this.course,
-  });
+  const CourseCard({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
@@ -295,9 +286,7 @@ class CourseCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleAvatar(
-              child: Icon(Icons.menu_book),
-            ),
+            const CircleAvatar(child: Icon(Icons.menu_book)),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -319,7 +308,7 @@ class CourseCard extends StatelessWidget {
                 ],
               ),
             ),
-            Consumer<CourseState>(
+            Consumer<CourseProvider>(
               builder: (context, state, child) {
                 final favorite = state.isFavorite(course.code);
 
@@ -328,9 +317,7 @@ class CourseCard extends StatelessWidget {
                       ? 'Hapus dari favorit'
                       : 'Tambahkan ke favorit',
                   onPressed: () {
-                    context
-                        .read<CourseState>()
-                        .toggleFavorite(course.code);
+                    context.read<CourseProvider>().toggleFavorite(course.code);
                   },
                   icon: Icon(
                     favorite ? Icons.favorite : Icons.favorite_border,
@@ -354,8 +341,7 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  final TextEditingController feedbackController =
-      TextEditingController();
+  final TextEditingController feedbackController = TextEditingController();
 
   @override
   void dispose() {
@@ -368,9 +354,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
     if (feedback.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feedback tidak boleh kosong.'),
-        ),
+        const SnackBar(content: Text('Feedback tidak boleh kosong.')),
       );
       return;
     }
