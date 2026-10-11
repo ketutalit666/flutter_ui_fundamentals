@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'models/course.dart';
+import 'repositories/course_repository.dart';
 import 'services/course_service.dart';
 
 const String studentName = 'I Ketut Alit Junaedi Wardana';
@@ -17,14 +18,14 @@ void main() {
 }
 
 class CourseState extends ChangeNotifier {
-  final CourseService _service = CourseService();
+  final CourseRepository _repository = CourseRepository(CourseService());
 
   List<Course> courses = [];
   final Set<String> favorites = {};
 
   Future<void> loadCourses() async {
     try {
-      courses = await _service.loadCourses();
+      courses = await _repository.getCourses();
       notifyListeners();
     } catch (error) {
       debugPrint('Gagal memuat data course: $error');
@@ -52,7 +53,9 @@ class CourseExplorerApp extends StatelessWidget {
       title: 'Course Explorer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.indigo,
+        ),
         useMaterial3: true,
       ),
       home: const MainPage(),
@@ -70,9 +73,17 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
 
-  final List<Widget> pages = const [HomePage(), CoursesPage(), FeedbackPage()];
+  final List<Widget> pages = const [
+    HomePage(),
+    CoursesPage(),
+    FeedbackPage(),
+  ];
 
-  final List<String> titles = const ['Home', 'Courses', 'Feedback'];
+  final List<String> titles = const [
+    'Home',
+    'Courses',
+    'Feedback',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +133,10 @@ class _MainPageState extends State<MainPage> {
               ],
             ),
           Expanded(
-            child: IndexedStack(index: selectedIndex, children: pages),
+            child: IndexedStack(
+              index: selectedIndex,
+              children: pages,
+            ),
           ),
         ],
       ),
@@ -165,7 +179,9 @@ class StudentIdentity extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            const CircleAvatar(child: Icon(Icons.person)),
+            const CircleAvatar(
+              child: Icon(Icons.person),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -202,19 +218,28 @@ class HomePage extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
-        const Text('Jelajahi materi pembelajaran dan tandai course favoritmu.'),
+        const Text(
+          'Jelajahi materi pembelajaran dan tandai course favoritmu.',
+        ),
         const SizedBox(height: 16),
         const StudentIdentity(),
         const SizedBox(height: 16),
-        Text('Daftar Materi', style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          'Daftar Materi',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         const SizedBox(height: 8),
         if (state.courses.isEmpty)
           const Padding(
             padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
           )
         else
-          ...state.courses.take(3).map((course) => CourseCard(course: course)),
+          ...state.courses.take(3).map(
+                (course) => CourseCard(course: course),
+              ),
       ],
     );
   }
@@ -232,7 +257,10 @@ class CoursesPage extends StatelessWidget {
       children: [
         const StudentIdentity(),
         const SizedBox(height: 16),
-        Text('Semua Materi', style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          'Semua Materi',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         const SizedBox(height: 8),
         if (state.courses.isEmpty)
           const Center(
@@ -242,7 +270,9 @@ class CoursesPage extends StatelessWidget {
             ),
           )
         else
-          ...state.courses.map((course) => CourseCard(course: course)),
+          ...state.courses.map(
+            (course) => CourseCard(course: course),
+          ),
       ],
     );
   }
@@ -251,7 +281,10 @@ class CoursesPage extends StatelessWidget {
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  const CourseCard({super.key, required this.course});
+  const CourseCard({
+    super.key,
+    required this.course,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +295,9 @@ class CourseCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleAvatar(child: Icon(Icons.menu_book)),
+            const CircleAvatar(
+              child: Icon(Icons.menu_book),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -293,7 +328,9 @@ class CourseCard extends StatelessWidget {
                       ? 'Hapus dari favorit'
                       : 'Tambahkan ke favorit',
                   onPressed: () {
-                    context.read<CourseState>().toggleFavorite(course.code);
+                    context
+                        .read<CourseState>()
+                        .toggleFavorite(course.code);
                   },
                   icon: Icon(
                     favorite ? Icons.favorite : Icons.favorite_border,
@@ -317,7 +354,8 @@ class FeedbackPage extends StatefulWidget {
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
-  final TextEditingController feedbackController = TextEditingController();
+  final TextEditingController feedbackController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -330,7 +368,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
 
     if (feedback.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Feedback tidak boleh kosong.')),
+        const SnackBar(
+          content: Text('Feedback tidak boleh kosong.'),
+        ),
       );
       return;
     }
