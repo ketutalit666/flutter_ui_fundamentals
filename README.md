@@ -33,3 +33,28 @@ Provider mengelola state daftar course dan favorite. Perubahan state diberitahuk
 ## Penanganan Data
 
 Course dimuat secara asynchronous dari file JSON. Aplikasi menangani kondisi loading, error, dan data berhasil dimuat.
+
+## Pertemuan 7 - REST API
+
+### Informasi REST API
+
+- **Base URL:** https://course-api-pearl.vercel.app
+- **Endpoint:** /courses
+- **HTTP Method:** GET
+- **Resource:** Courses
+- **Status Code:** 200 OK
+- **Fungsi:** Mengambil seluruh data mata kuliah dari server.
+
+### Struktur JSON Course
+
+| Field | Tipe Data | Keterangan |
+|---|---|---|
+| id | Integer | ID unik mata kuliah |
+| code | String | Kode mata kuliah |
+| title | String | Nama mata kuliah |
+| credits | Integer | Jumlah SKS |
+| status | String | Status mata kuliah |
+
+### Tujuan Pengujian
+
+Pengujian dilakukan menggunakan Google Chrome untuk mengakses REST API. Request GET digunakan untuk mengambil data mata kuliah dari server. Respons yang diterima berbentuk JSON dan akan digunakan sebagai dasar pembuatan model Dart pada tahap selanjutnya.
