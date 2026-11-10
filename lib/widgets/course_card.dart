@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -59,9 +58,11 @@ class CourseCard extends StatelessWidget {
                     ),
                     validator: (value) {
                       final credits = int.tryParse(value ?? '');
+
                       if (credits == null || credits <= 0) {
                         return 'Jumlah SKS tidak valid';
                       }
+
                       return null;
                     },
                   ),
@@ -104,6 +105,7 @@ class CourseCard extends StatelessWidget {
                   if (!dialogContext.mounted) return;
 
                   Navigator.pop(dialogContext);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Mata kuliah berhasil diperbarui.'),
@@ -113,7 +115,9 @@ class CourseCard extends StatelessWidget {
                   if (!dialogContext.mounted) return;
 
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(content: Text('Gagal memperbarui data: $e')),
+                    SnackBar(
+                      content: Text('Gagal memperbarui data: $e'),
+                    ),
                   );
                 }
               },
@@ -180,6 +184,7 @@ class CourseCard extends StatelessWidget {
                   if (!dialogContext.mounted) return;
 
                   Navigator.pop(dialogContext);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Judul berhasil diperbarui.'),
@@ -189,7 +194,9 @@ class CourseCard extends StatelessWidget {
                   if (!dialogContext.mounted) return;
 
                   ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(content: Text('Gagal memperbarui judul: $e')),
+                    SnackBar(
+                      content: Text('Gagal memperbarui judul: $e'),
+                    ),
                   );
                 }
               },
@@ -201,6 +208,60 @@ class CourseCard extends StatelessWidget {
     );
 
     titleController.dispose();
+  }
+
+  // Dialog konfirmasi DELETE
+  Future<void> _showDeleteConfirmation(BuildContext context) async {
+    if (course.id == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Mata Kuliah?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus '
+            '"${course.title}" dari daftar mata kuliah?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Ya, Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      await context.read<CourseProvider>().deleteCourse(course.id!);
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Mata kuliah berhasil dihapus.'),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus mata kuliah: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -243,13 +304,15 @@ class CourseCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 PopupMenuButton<String>(
-                  tooltip: 'Edit mata kuliah',
+                  tooltip: 'Kelola mata kuliah',
                   enabled: course.id != null,
                   onSelected: (value) {
                     if (value == 'put') {
                       _showEditDialog(context);
                     } else if (value == 'patch') {
                       _showPatchDialog(context);
+                    } else if (value == 'delete') {
+                      _showDeleteConfirmation(context);
                     }
                   },
                   itemBuilder: (context) => const [
@@ -260,6 +323,23 @@ class CourseCard extends StatelessWidget {
                     PopupMenuItem(
                       value: 'patch',
                       child: Text('Edit judul saja (PATCH)'),
+                    ),
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Hapus mata kuliah (DELETE)',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                   icon: const Icon(Icons.edit_outlined),

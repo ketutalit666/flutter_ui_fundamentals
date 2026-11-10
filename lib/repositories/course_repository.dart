@@ -1,4 +1,3 @@
-
 import '../models/course.dart';
 import '../services/course_service.dart';
 
@@ -24,5 +23,9 @@ class CourseRepository {
     Map<String, dynamic> updates,
   ) {
     return service.patchCourse(id, updates);
+  }
+
+  Future<void> deleteCourse(String id) {
+    return service.deleteCourse(id);
   }
 }

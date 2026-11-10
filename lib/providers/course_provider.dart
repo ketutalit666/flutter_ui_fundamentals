@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 
 import '../models/course.dart';
@@ -31,78 +30,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addCourse(Course course) async {
-    isSaving = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      final newCourse = await repository.addCourse(course);
-      courses.add(newCourse);
-    } catch (e) {
-      error = 'Gagal menambahkan materi: $e';
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-
-  // Memperbarui seluruh data menggunakan PUT
-  Future<void> updateCourse(Course course) async {
-    isSaving = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      final updatedCourse =
-          await repository.updateCourse(course);
-
-      final index = courses.indexWhere(
-        (item) => item.id == updatedCourse.id,
-      );
-
-      if (index != -1) {
-        courses[index] = updatedCourse;
-      }
-    } catch (e) {
-      error = 'Gagal memperbarui materi: $e';
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-
-  // Memperbarui sebagian data menggunakan PATCH
-  Future<void> patchCourse(
-    String id,
-    Map<String, dynamic> updates,
-  ) async {
-    isSaving = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      final updatedCourse =
-          await repository.patchCourse(id, updates);
-
-      final index = courses.indexWhere(
-        (item) => item.id == updatedCourse.id,
-      );
-
-      if (index != -1) {
-        courses[index] = updatedCourse;
-      }
-    } catch (e) {
-      error = 'Gagal memperbarui sebagian materi: $e';
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-
   bool isFavorite(String code) {
     return favorites.contains(code);
   }
@@ -115,5 +42,103 @@ class CourseProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  Future<void> addCourse(Course course) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final newCourse = await repository.addCourse(course);
+      courses.add(newCourse);
+    } catch (e) {
+      error = 'Gagal menambahkan mata kuliah: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateCourse(Course course) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final updatedCourse = await repository.updateCourse(course);
+
+      final index = courses.indexWhere(
+        (item) => item.id == updatedCourse.id,
+      );
+
+      if (index != -1) {
+        courses[index] = updatedCourse;
+      }
+    } catch (e) {
+      error = 'Gagal memperbarui mata kuliah: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> patchCourse(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final updatedCourse = await repository.patchCourse(id, updates);
+
+      final index = courses.indexWhere(
+        (item) => item.id == updatedCourse.id,
+      );
+
+      if (index != -1) {
+        courses[index] = updatedCourse;
+      }
+    } catch (e) {
+      error = 'Gagal memperbarui sebagian data: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // HTTP DELETE
+  Future<void> deleteCourse(String id) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final index = courses.indexWhere(
+        (item) => item.id == id,
+      );
+
+      if (index == -1) {
+        throw Exception('Mata kuliah tidak ditemukan di daftar.');
+      }
+
+      final deletedCourse = courses[index];
+
+      await repository.deleteCourse(id);
+
+      courses.removeWhere((item) => item.id == id);
+      favorites.remove(deletedCourse.code);
+    } catch (e) {
+      error = 'Gagal menghapus mata kuliah: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
   }
 }
