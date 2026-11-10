@@ -31,6 +31,15 @@ class CourseService {
           .toList();
 
       debugPrint('Jumlah mata kuliah: ${courses.length}');
+      debugPrint('--- Tiga Data Mata Kuliah Pertama ---');
+
+      for (final course in courses.take(3)) {
+        debugPrint(
+          'Kode: ${course.code} | '
+          'Judul: ${course.title} | '
+          'Status: ${course.status}',
+        );
+      }
 
       return courses;
     } else {
