@@ -1,27 +1,37 @@
 import '../models/course.dart';
 import '../services/course_service.dart';
+import '../services/supabase_course_service.dart';
 
 class CourseRepository {
   final CourseService service;
+  final SupabaseCourseService supabaseService;
 
-  CourseRepository(this.service);
+  CourseRepository(
+    this.service, {
+    SupabaseCourseService? supabaseService,
+  }) : supabaseService = supabaseService ?? SupabaseCourseService();
 
-  // Mengambil seluruh data mata kuliah
+  // REST API
   Future<List<Course>> getCourses() {
     return service.loadCourses();
   }
 
-  // Menambahkan mata kuliah
+  // Supabase SELECT
+  Future<List<Course>> getSupabaseCourses() {
+    return supabaseService.loadCourses();
+  }
+
+  // REST API POST
   Future<Course> addCourse(Course course) {
     return service.createCourse(course);
   }
 
-  // Memperbarui seluruh data mata kuliah
+  // REST API PUT
   Future<Course> updateCourse(Course course) {
     return service.updateCourse(course);
   }
 
-  // Memperbarui sebagian data mata kuliah
+  // REST API PATCH
   Future<Course> patchCourse(
     String id,
     Map<String, dynamic> updates,
@@ -29,7 +39,7 @@ class CourseRepository {
     return service.patchCourse(id, updates);
   }
 
-  // Menghapus mata kuliah
+  // REST API DELETE
   Future<void> deleteCourse(String id) {
     return service.deleteCourse(id);
   }

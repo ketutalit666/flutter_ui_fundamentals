@@ -13,7 +13,7 @@ Future<void> main() async {
 
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
-    anonKey: SupabaseConfig.supabaseAnonKey,
+    publishableKey: SupabaseConfig.supabasePublishableKey,
   );
 
   final courseService = CourseService();
@@ -21,7 +21,8 @@ Future<void> main() async {
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => CourseProvider(courseRepository)..loadCourses(),
+      create: (_) => CourseProvider(courseRepository)
+        ..loadSupabaseCourses(),
       child: const CourseExplorerApp(),
     ),
   );

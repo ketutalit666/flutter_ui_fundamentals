@@ -15,6 +15,7 @@ class CourseProvider extends ChangeNotifier {
   bool isSaving = false;
   String? error;
 
+  // Mengambil data dari REST API
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -24,6 +25,27 @@ class CourseProvider extends ChangeNotifier {
       courses = await repository.getCourses();
     } catch (e) {
       error = 'Gagal memuat materi: $e';
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Mengambil data dari Supabase
+  Future<void> loadSupabaseCourses() async {
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      courses = await repository.getSupabaseCourses();
+
+      debugPrint(
+        'Data Supabase berhasil dimuat: ${courses.length} mata kuliah',
+      );
+    } catch (e) {
+      error = 'Gagal memuat data dari Supabase: $e';
+      debugPrint(error);
     } finally {
       isLoading = false;
       notifyListeners();
@@ -112,7 +134,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // HTTP DELETE
   Future<void> deleteCourse(String id) async {
     isSaving = true;
     error = null;
