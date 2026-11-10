@@ -6,18 +6,22 @@ class CourseRepository {
 
   CourseRepository(this.service);
 
+  // Mengambil seluruh data mata kuliah
   Future<List<Course>> getCourses() {
     return service.loadCourses();
   }
 
+  // Menambahkan mata kuliah
   Future<Course> addCourse(Course course) {
     return service.createCourse(course);
   }
 
+  // Memperbarui seluruh data mata kuliah
   Future<Course> updateCourse(Course course) {
     return service.updateCourse(course);
   }
 
+  // Memperbarui sebagian data mata kuliah
   Future<Course> patchCourse(
     String id,
     Map<String, dynamic> updates,
@@ -25,6 +29,7 @@ class CourseRepository {
     return service.patchCourse(id, updates);
   }
 
+  // Menghapus mata kuliah
   Future<void> deleteCourse(String id) {
     return service.deleteCourse(id);
   }
