@@ -14,4 +14,15 @@ class CourseRepository {
   Future<Course> addCourse(Course course) {
     return service.createCourse(course);
   }
+
+  Future<Course> updateCourse(Course course) {
+    return service.updateCourse(course);
+  }
+
+  Future<Course> patchCourse(
+    String id,
+    Map<String, dynamic> updates,
+  ) {
+    return service.patchCourse(id, updates);
+  }
 }

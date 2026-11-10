@@ -31,7 +31,6 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  // Menambahkan mata kuliah baru
   Future<void> addCourse(Course course) async {
     isSaving = true;
     error = null;
@@ -39,10 +38,64 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       final newCourse = await repository.addCourse(course);
-
       courses.add(newCourse);
     } catch (e) {
       error = 'Gagal menambahkan materi: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // Memperbarui seluruh data menggunakan PUT
+  Future<void> updateCourse(Course course) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final updatedCourse =
+          await repository.updateCourse(course);
+
+      final index = courses.indexWhere(
+        (item) => item.id == updatedCourse.id,
+      );
+
+      if (index != -1) {
+        courses[index] = updatedCourse;
+      }
+    } catch (e) {
+      error = 'Gagal memperbarui materi: $e';
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  // Memperbarui sebagian data menggunakan PATCH
+  Future<void> patchCourse(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    isSaving = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final updatedCourse =
+          await repository.patchCourse(id, updates);
+
+      final index = courses.indexWhere(
+        (item) => item.id == updatedCourse.id,
+      );
+
+      if (index != -1) {
+        courses[index] = updatedCourse;
+      }
+    } catch (e) {
+      error = 'Gagal memperbarui sebagian materi: $e';
       rethrow;
     } finally {
       isSaving = false;
