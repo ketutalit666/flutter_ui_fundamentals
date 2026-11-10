@@ -50,4 +50,39 @@ class CourseService {
       rethrow;
     }
   }
+
+  // HTTP POST untuk menambahkan mata kuliah
+  Future<Course> createCourse(Course course) async {
+    final url = Uri.parse('$baseUrl/courses');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'code': course.code,
+        'title': course.title,
+        'credits': course.credits,
+        'status': course.status,
+      }),
+    ).timeout(const Duration(seconds: 15));
+
+    debugPrint('HTTP POST: $url');
+    debugPrint('Status Code: ${response.statusCode}');
+    debugPrint('Response: ${response.body}');
+
+    if (response.statusCode == 201) {
+      final data =
+          jsonDecode(response.body) as Map<String, dynamic>;
+
+      return Course.fromJson(data);
+    } else {
+      throw Exception(
+        'Gagal menambahkan mata kuliah. '
+        'Status Code: ${response.statusCode}. '
+        'Pesan: ${response.body}',
+      );
+    }
+  }
 }
