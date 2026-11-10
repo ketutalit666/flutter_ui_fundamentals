@@ -13,39 +13,41 @@ class CourseService {
   Future<List<Course>> loadCourses() async {
     final url = Uri.parse('$baseUrl/courses');
 
-    final response = await http.get(url);
+    try {
+      final response = await http
+          .get(url)
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('HTTP GET: ${url.toString()}');
-    debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('HTTP GET: $url');
+      debugPrint('Status Code: ${response.statusCode}');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data =
-          jsonDecode(response.body) as List<dynamic>;
+      if (response.statusCode == 200) {
+        final List<dynamic> data =
+            jsonDecode(response.body) as List<dynamic>;
 
-      final courses = data
-          .map(
-            (item) => Course.fromJson(
-              item as Map<String, dynamic>,
-            ),
-          )
-          .toList();
+        final courses = data
+            .map(
+              (item) => Course.fromJson(
+                item as Map<String, dynamic>,
+              ),
+            )
+            .toList();
 
-      debugPrint('Jumlah mata kuliah: ${courses.length}');
-      debugPrint('--- Tiga Data Mata Kuliah Pertama ---');
+        debugPrint('Jumlah mata kuliah: ${courses.length}');
 
-      for (final course in courses.take(3)) {
-        debugPrint(
-          'Kode: ${course.code} | '
-          'Judul: ${course.title} | '
-          'Status: ${course.status}',
+        return courses;
+      } else {
+        throw Exception(
+          'Gagal mengambil data. Status Code: ${response.statusCode}',
         );
       }
-
-      return courses;
-    } else {
-      throw Exception(
-        'Gagal mengambil data. Status Code: ${response.statusCode}',
-      );
+    } on FormatException {
+      throw Exception('Format JSON dari server tidak valid.');
+    } on http.ClientException catch (e) {
+      throw Exception('Kesalahan koneksi API: $e');
+    } catch (e) {
+      debugPrint('Terjadi kesalahan: $e');
+      rethrow;
     }
   }
 }
