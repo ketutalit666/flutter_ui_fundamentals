@@ -44,13 +44,49 @@ class SupabaseCourseService {
 
       final newCourse = Course.fromJson(response);
 
-      debugPrint('Supabase INSERT berhasil');
-      debugPrint('Mata kuliah: ${newCourse.title}');
-      debugPrint('ID baru: ${newCourse.id}');
+      debugPrint('Supabase INSERT berhasil: ${newCourse.title}');
 
       return newCourse;
     } catch (e) {
       debugPrint('Supabase INSERT gagal: $e');
+      rethrow;
+    }
+  }
+
+  // UPDATE: memperbarui seluruh data mata kuliah
+  Future<Course> updateCourse(Course course) async {
+    try {
+      if (course.id == null) {
+        throw Exception('ID mata kuliah tidak ditemukan.');
+      }
+
+      final id = int.tryParse(course.id!);
+
+      if (id == null) {
+        throw Exception('Format ID mata kuliah tidak valid.');
+      }
+
+      final response = await client
+          .from('courses')
+          .update({
+            'code': course.code,
+            'title': course.title,
+            'credits': course.credits,
+            'status': course.status,
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+      final updatedCourse = Course.fromJson(response);
+
+      debugPrint('Supabase UPDATE berhasil');
+      debugPrint('Data diperbarui: ${updatedCourse.title}');
+      debugPrint('ID: ${updatedCourse.id}');
+
+      return updatedCourse;
+    } catch (e) {
+      debugPrint('Supabase UPDATE gagal: $e');
       rethrow;
     }
   }

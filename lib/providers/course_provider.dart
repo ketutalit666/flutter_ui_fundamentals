@@ -184,4 +184,33 @@ class CourseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> updateSupabaseCourse(Course course) async {
+  isSaving = true;
+  error = null;
+  notifyListeners();
+
+  try {
+    final updatedCourse =
+        await repository.updateSupabaseCourse(course);
+
+    final index = courses.indexWhere(
+      (item) => item.id == updatedCourse.id,
+    );
+
+    if (index != -1) {
+      courses[index] = updatedCourse;
+    }
+
+    debugPrint(
+      'Data Supabase berhasil diperbarui: ${updatedCourse.title}',
+    );
+    } catch (e) {
+      error = 'Gagal memperbarui data Supabase: $e';
+      debugPrint(error);
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
 }

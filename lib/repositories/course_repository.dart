@@ -36,6 +36,11 @@ class CourseRepository {
     return service.updateCourse(course);
   }
 
+  // Supabase UPDATE
+  Future<Course> updateSupabaseCourse(Course course) {
+    return supabaseService.updateCourse(course);
+  }
+
   // REST API PATCH
   Future<Course> patchCourse(
     String id,

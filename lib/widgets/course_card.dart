@@ -8,8 +8,12 @@ import '../screens/detail_page.dart';
 class CourseCard extends StatelessWidget {
   final Course course;
 
-  const CourseCard({super.key, required this.course});
+  const CourseCard({
+    super.key,
+    required this.course,
+  });
 
+  // REST API PUT
   Future<void> _showEditDialog(BuildContext context) async {
     final codeController = TextEditingController(text: course.code);
     final titleController = TextEditingController(text: course.title);
@@ -108,7 +112,9 @@ class CourseCard extends StatelessWidget {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Mata kuliah berhasil diperbarui.'),
+                      content: Text(
+                        'Mata kuliah berhasil diperbarui melalui REST PUT.',
+                      ),
                     ),
                   );
                 } catch (e) {
@@ -134,6 +140,7 @@ class CourseCard extends StatelessWidget {
     statusController.dispose();
   }
 
+  // REST API PATCH
   Future<void> _showPatchDialog(BuildContext context) async {
     final titleController = TextEditingController(text: course.title);
 
@@ -187,7 +194,7 @@ class CourseCard extends StatelessWidget {
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Judul berhasil diperbarui.'),
+                      content: Text('Judul berhasil diperbarui melalui PATCH.'),
                     ),
                   );
                 } catch (e) {
@@ -210,58 +217,142 @@ class CourseCard extends StatelessWidget {
     titleController.dispose();
   }
 
-  // Dialog konfirmasi DELETE
-  Future<void> _showDeleteConfirmation(BuildContext context) async {
-    if (course.id == null) return;
+  // SUPABASE UPDATE
+  Future<void> _showSupabaseUpdateDialog(
+    BuildContext context,
+  ) async {
+    final codeController = TextEditingController(text: course.code);
+    final titleController = TextEditingController(text: course.title);
+    final creditsController =
+        TextEditingController(text: course.credits.toString());
+    final statusController = TextEditingController(text: course.status);
 
-    final confirmed = await showDialog<bool>(
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Hapus Mata Kuliah?'),
-          content: Text(
-            'Apakah kamu yakin ingin menghapus '
-            '"${course.title}" dari daftar mata kuliah?',
+          title: const Text('Edit Mata Kuliah (Supabase UPDATE)'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: codeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Kode Mata Kuliah',
+                    ),
+                    validator: (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'Kode wajib diisi'
+                            : null,
+                  ),
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Judul Mata Kuliah',
+                    ),
+                    validator: (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'Judul wajib diisi'
+                            : null,
+                  ),
+                  TextFormField(
+                    controller: creditsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Jumlah SKS',
+                    ),
+                    validator: (value) {
+                      final credits = int.tryParse(value ?? '');
+
+                      if (credits == null || credits <= 0) {
+                        return 'Jumlah SKS tidak valid';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: statusController,
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                    ),
+                    validator: (value) =>
+                        value == null || value.trim().isEmpty
+                            ? 'Status wajib diisi'
+                            : null,
+                  ),
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Batal'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Ya, Hapus'),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+
+                if (course.id == null) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(
+                      content: Text('ID mata kuliah tidak ditemukan.'),
+                    ),
+                  );
+                  return;
+                }
+
+                final updatedCourse = Course(
+                  id: course.id,
+                  code: codeController.text.trim(),
+                  title: titleController.text.trim(),
+                  credits: int.parse(creditsController.text.trim()),
+                  status: statusController.text.trim(),
+                );
+
+                try {
+                  await context
+                      .read<CourseProvider>()
+                      .updateSupabaseCourse(updatedCourse);
+
+                  if (!dialogContext.mounted) return;
+
+                  Navigator.pop(dialogContext);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Data berhasil diperbarui di Supabase.',
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  if (!dialogContext.mounted) return;
+
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal memperbarui Supabase: $e'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Simpan UPDATE'),
             ),
           ],
         );
       },
     );
 
-    if (confirmed != true || !context.mounted) return;
-
-    try {
-      await context.read<CourseProvider>().deleteCourse(course.id!);
-
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mata kuliah berhasil dihapus.'),
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Gagal menghapus mata kuliah: $e'),
-        ),
-      );
-    }
+    codeController.dispose();
+    titleController.dispose();
+    creditsController.dispose();
+    statusController.dispose();
   }
 
   @override
@@ -293,7 +384,9 @@ class CourseCard extends StatelessWidget {
             ),
             title: Text(
               course.title,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             subtitle: Text(
               '${course.code} • ${course.credits} SKS\n'
@@ -304,42 +397,29 @@ class CourseCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 PopupMenuButton<String>(
-                  tooltip: 'Kelola mata kuliah',
+                  tooltip: 'Edit mata kuliah',
                   enabled: course.id != null,
                   onSelected: (value) {
                     if (value == 'put') {
                       _showEditDialog(context);
                     } else if (value == 'patch') {
                       _showPatchDialog(context);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(context);
+                    } else if (value == 'supabase_update') {
+                      _showSupabaseUpdateDialog(context);
                     }
                   },
                   itemBuilder: (context) => const [
                     PopupMenuItem(
                       value: 'put',
-                      child: Text('Edit seluruh data (PUT)'),
+                      child: Text('Edit seluruh data (REST PUT)'),
                     ),
                     PopupMenuItem(
                       value: 'patch',
-                      child: Text('Edit judul saja (PATCH)'),
+                      child: Text('Edit judul saja (REST PATCH)'),
                     ),
-                    PopupMenuDivider(),
                     PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Hapus mata kuliah (DELETE)',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ],
-                      ),
+                      value: 'supabase_update',
+                      child: Text('Edit seluruh data (Supabase)'),
                     ),
                   ],
                   icon: const Icon(Icons.edit_outlined),
