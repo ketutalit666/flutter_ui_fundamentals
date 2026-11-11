@@ -91,7 +91,7 @@ class CoursesPage extends StatelessWidget {
                 );
 
                 try {
-                  await context.read<CourseProvider>().addCourse(course);
+                  await context.read<CourseProvider>().insertSupabaseCourse(course);
 
                   if (!context.mounted) return;
 

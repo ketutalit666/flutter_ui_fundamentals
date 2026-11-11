@@ -11,7 +11,7 @@ class CourseRepository {
     SupabaseCourseService? supabaseService,
   }) : supabaseService = supabaseService ?? SupabaseCourseService();
 
-  // REST API
+  // REST API GET
   Future<List<Course>> getCourses() {
     return service.loadCourses();
   }
@@ -24,6 +24,11 @@ class CourseRepository {
   // REST API POST
   Future<Course> addCourse(Course course) {
     return service.createCourse(course);
+  }
+
+  // Supabase INSERT
+  Future<Course> addSupabaseCourse(Course course) {
+    return supabaseService.insertCourse(course);
   }
 
   // REST API PUT

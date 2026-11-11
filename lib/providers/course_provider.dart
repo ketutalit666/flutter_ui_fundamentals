@@ -162,4 +162,26 @@ class CourseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  Future<void> insertSupabaseCourse(Course course) async {
+  isSaving = true;
+  error = null;
+  notifyListeners();
+
+  try {
+    final newCourse = await repository.addSupabaseCourse(course);
+
+    courses.add(newCourse);
+
+    debugPrint(
+      'Data berhasil ditambahkan ke daftar: ${newCourse.title}',
+    );
+    } catch (e) {
+      error = 'Gagal menambahkan data ke Supabase: $e';
+      debugPrint(error);
+      rethrow;
+    } finally {
+      isSaving = false;
+      notifyListeners();
+    }
+  }
 }
