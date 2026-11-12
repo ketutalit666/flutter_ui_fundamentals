@@ -1,60 +1,76 @@
-# Course Explorer v2
-
-Aplikasi Flutter untuk menampilkan materi pembelajaran dengan Provider dan arsitektur yang terstruktur.
+# Course Explorer
 
 ## Identitas Mahasiswa
-
 - Nama: I Ketut Alit Junaedi Wardana
-- NIM: 2415051050
+- NIM: [ISI NIM]
 
-## Struktur dan Tanggung Jawab Folder
+## Deskripsi Aplikasi
 
-- **models/**: Mendefinisikan struktur data, seperti `Course`, serta parsing JSON.
-- **services/**: Mengambil dan membaca data dari sumber data, termasuk file JSON.
-- **repositories/**: Menjadi perantara antara Provider dan Service untuk mengakses data.
-- **providers/**: Mengelola state aplikasi, seperti daftar course, loading, error, dan favorite.
-- **screens/**: Menyusun halaman aplikasi, seperti Home, Courses, Favorites, Detail, dan Feedback.
-- **widgets/**: Menyediakan komponen UI yang dapat digunakan kembali.
-- **main.dart**: Menyiapkan aplikasi, dependency, Provider, dan konfigurasi tema.
-- **student_info.dart**: Menyimpan konstanta identitas mahasiswa.
+Course Explorer merupakan aplikasi berbasis Flutter untuk mengelola dan menampilkan data mata kuliah. Aplikasi ini menyediakan fitur melihat daftar mata kuliah, melihat detail, menambahkan data, mengedit, menghapus, dan menyimpan mata kuliah ke daftar favorit.
 
-## Arah Dependency
+Aplikasi menggunakan desain responsif agar dapat digunakan pada berbagai ukuran layar.
 
-Alur pengambilan data mengikuti:
+## Fitur Utama
 
-Screens/Widgets → Provider → Repository → Service/Data Source.
+- Menampilkan daftar mata kuliah.
+- Menambahkan mata kuliah.
+- Mengedit data mata kuliah.
+- Menghapus mata kuliah.
+- Menambahkan dan menghapus favorit.
+- Menampilkan detail mata kuliah.
+- Menampilkan loading, error, dan empty state.
+- Navigasi responsif menggunakan NavigationBar dan NavigationRail.
 
-UI tidak membaca JSON secara langsung. Provider menerima Repository sebagai dependency, sedangkan Repository menggunakan Service untuk mendapatkan data.
+## Teknologi yang Digunakan
 
-## State Management
+- Flutter dan Dart.
+- Provider untuk state management.
+- Supabase sebagai backend dan database.
+- Git dan GitHub untuk version control.
 
-Provider mengelola state daftar course dan favorite. Perubahan state diberitahukan melalui `notifyListeners()`, sehingga widget yang mendengarkan perubahan dapat diperbarui.
+## Cara Menjalankan Aplikasi
 
-## Penanganan Data
+1. Pastikan Flutter SDK sudah terpasang.
+2. Clone repository:
 
-Course dimuat secara asynchronous dari file JSON. Aplikasi menangani kondisi loading, error, dan data berhasil dimuat.
+   `git clone https://github.com/ketutalit666/flutter_ui_fundamentals.git`
 
-## Pertemuan 7 - REST API
+3. Masuk ke folder project:
 
-### Informasi REST API
+   `cd flutter_ui_fundamentals`
 
-- **Base URL:** https://course-api-pearl.vercel.app
-- **Endpoint:** /courses
-- **HTTP Method:** GET
-- **Resource:** Courses
-- **Status Code:** 200 OK
-- **Fungsi:** Mengambil seluruh data mata kuliah dari server.
+4. Instal dependency:
 
-### Struktur JSON Course
+   `flutter pub get`
 
-| Field | Tipe Data | Keterangan |
-|---|---|---|
-| id | Integer | ID unik mata kuliah |
-| code | String | Kode mata kuliah |
-| title | String | Nama mata kuliah |
-| credits | Integer | Jumlah SKS |
-| status | String | Status mata kuliah |
+5. Pastikan konfigurasi Supabase sudah tersedia.
+6. Jalankan aplikasi:
 
-### Tujuan Pengujian
+   `flutter run -d chrome`
 
-Pengujian dilakukan menggunakan Google Chrome untuk mengakses REST API. Request GET digunakan untuk mengambil data mata kuliah dari server. Respons yang diterima berbentuk JSON dan akan digunakan sebagai dasar pembuatan model Dart pada tahap selanjutnya.
+## Arsitektur Aplikasi
+
+Aplikasi menggunakan pemisahan tanggung jawab agar kode lebih terstruktur.
+
+- **Models:** mendefinisikan struktur data mata kuliah.
+- **Services:** menangani komunikasi dengan backend Supabase.
+- **Data Source:** mendefinisikan kontrak sumber data.
+- **Repositories:** menjadi perantara antara data source dan Provider.
+- **Providers:** mengelola state, data, loading, error, dan favorit.
+- **Screens:** menampilkan halaman aplikasi.
+- **Widgets:** menyediakan komponen antarmuka yang dapat digunakan kembali.
+
+## Backend
+
+Backend yang digunakan adalah Supabase dengan tabel `courses` untuk menyimpan data mata kuliah.
+
+Operasi database yang digunakan meliputi:
+- SELECT untuk mengambil data.
+- INSERT untuk menambahkan data.
+- UPDATE untuk memperbarui data.
+- DELETE untuk menghapus data.
+
+## Repository
+
+GitHub:
+https://github.com/ketutalit666/flutter_ui_fundamentals
