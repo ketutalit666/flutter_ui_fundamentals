@@ -16,7 +16,7 @@ class CourseRepository {
     return service.loadCourses();
   }
 
-  // Supabase SELECT
+  // SUPABASE SELECT
   Future<List<Course>> getSupabaseCourses() {
     return supabaseService.loadCourses();
   }
@@ -26,7 +26,7 @@ class CourseRepository {
     return service.createCourse(course);
   }
 
-  // Supabase INSERT
+  // SUPABASE INSERT
   Future<Course> addSupabaseCourse(Course course) {
     return supabaseService.insertCourse(course);
   }
@@ -36,7 +36,7 @@ class CourseRepository {
     return service.updateCourse(course);
   }
 
-  // Supabase UPDATE
+  // SUPABASE UPDATE
   Future<Course> updateSupabaseCourse(Course course) {
     return supabaseService.updateCourse(course);
   }
@@ -52,5 +52,10 @@ class CourseRepository {
   // REST API DELETE
   Future<void> deleteCourse(String id) {
     return service.deleteCourse(id);
+  }
+
+  // SUPABASE DELETE
+  Future<void> deleteSupabaseCourse(String id) {
+    return supabaseService.deleteCourse(id);
   }
 }

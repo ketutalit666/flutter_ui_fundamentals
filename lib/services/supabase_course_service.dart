@@ -28,7 +28,7 @@ class SupabaseCourseService {
     }
   }
 
-  // INSERT: menambahkan mata kuliah baru
+  // INSERT: menambahkan mata kuliah
   Future<Course> insertCourse(Course course) async {
     try {
       final response = await client
@@ -80,13 +80,39 @@ class SupabaseCourseService {
 
       final updatedCourse = Course.fromJson(response);
 
-      debugPrint('Supabase UPDATE berhasil');
-      debugPrint('Data diperbarui: ${updatedCourse.title}');
-      debugPrint('ID: ${updatedCourse.id}');
+      debugPrint('Supabase UPDATE berhasil: ${updatedCourse.title}');
 
       return updatedCourse;
     } catch (e) {
       debugPrint('Supabase UPDATE gagal: $e');
+      rethrow;
+    }
+  }
+
+  // DELETE: menghapus mata kuliah berdasarkan ID
+  Future<void> deleteCourse(String courseId) async {
+    try {
+      final id = int.tryParse(courseId);
+
+      if (id == null) {
+        throw Exception('Format ID mata kuliah tidak valid.');
+      }
+
+      final response = await client
+          .from('courses')
+          .delete()
+          .eq('id', id)
+          .select('id');
+
+      if (response.isEmpty) {
+        throw Exception(
+          'Data tidak ditemukan atau tidak memiliki izin untuk dihapus.',
+        );
+      }
+
+      debugPrint('Supabase DELETE berhasil. ID: $id');
+    } catch (e) {
+      debugPrint('Supabase DELETE gagal: $e');
       rethrow;
     }
   }

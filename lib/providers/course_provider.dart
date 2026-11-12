@@ -213,4 +213,45 @@ class CourseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  // SUPABASE DELETE
+Future<void> deleteSupabaseCourse(String id) async {
+  isSaving = true;
+  error = null;
+  notifyListeners();
+
+  try {
+    // Cari data sebelum dihapus
+    final index = courses.indexWhere(
+      (item) => item.id == id,
+    );
+
+    if (index == -1) {
+      throw Exception('Mata kuliah tidak ditemukan.');
+    }
+
+    final deletedCourse = courses[index];
+
+    // Hapus data dari Supabase
+    await repository.deleteSupabaseCourse(id);
+
+    // Hapus juga dari daftar aplikasi
+    courses.removeWhere(
+      (item) => item.id == id,
+    );
+
+    // Hapus dari daftar favorit jika sebelumnya difavoritkan
+    favorites.remove(deletedCourse.code);
+
+    debugPrint(
+      'Supabase DELETE berhasil: ${deletedCourse.title}',
+    );
+  } catch (e) {
+    error = 'Gagal menghapus data dari Supabase: $e';
+    debugPrint(error);
+    rethrow;
+  } finally {
+    isSaving = false;
+    notifyListeners();
+  }
+ }
 }

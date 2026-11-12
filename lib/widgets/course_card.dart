@@ -106,7 +106,7 @@ class CourseCard extends StatelessWidget {
                       .read<CourseProvider>()
                       .updateCourse(updatedCourse);
 
-                  if (!dialogContext.mounted) return;
+                  if (!context.mounted || !dialogContext.mounted) return;
 
                   Navigator.pop(dialogContext);
 
@@ -188,13 +188,15 @@ class CourseCard extends StatelessWidget {
                     {'title': newTitle},
                   );
 
-                  if (!dialogContext.mounted) return;
+                  if (!context.mounted || !dialogContext.mounted) return;
 
                   Navigator.pop(dialogContext);
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Judul berhasil diperbarui melalui PATCH.'),
+                      content: Text(
+                        'Judul berhasil diperbarui melalui PATCH.',
+                      ),
                     ),
                   );
                 } catch (e) {
@@ -321,7 +323,7 @@ class CourseCard extends StatelessWidget {
                       .read<CourseProvider>()
                       .updateSupabaseCourse(updatedCourse);
 
-                  if (!dialogContext.mounted) return;
+                  if (!context.mounted || !dialogContext.mounted) return;
 
                   Navigator.pop(dialogContext);
 
@@ -353,6 +355,74 @@ class CourseCard extends StatelessWidget {
     titleController.dispose();
     creditsController.dispose();
     statusController.dispose();
+  }
+
+  // SUPABASE DELETE
+  Future<void> _showDeleteSupabaseDialog(
+    BuildContext context,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Mata Kuliah?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus '
+            '"${course.title}" dari database Supabase?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    if (course.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ID mata kuliah tidak ditemukan.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      await context
+          .read<CourseProvider>()
+          .deleteSupabaseCourse(course.id!);
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data berhasil dihapus dari Supabase.'),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menghapus data: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -397,7 +467,7 @@ class CourseCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 PopupMenuButton<String>(
-                  tooltip: 'Edit mata kuliah',
+                  tooltip: 'Kelola mata kuliah',
                   enabled: course.id != null,
                   onSelected: (value) {
                     if (value == 'put') {
@@ -406,6 +476,8 @@ class CourseCard extends StatelessWidget {
                       _showPatchDialog(context);
                     } else if (value == 'supabase_update') {
                       _showSupabaseUpdateDialog(context);
+                    } else if (value == 'supabase_delete') {
+                      _showDeleteSupabaseDialog(context);
                     }
                   },
                   itemBuilder: (context) => const [
@@ -420,6 +492,25 @@ class CourseCard extends StatelessWidget {
                     PopupMenuItem(
                       value: 'supabase_update',
                       child: Text('Edit seluruh data (Supabase)'),
+                    ),
+                    PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'supabase_delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Hapus data (Supabase)',
+                            style: TextStyle(
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                   icon: const Icon(Icons.edit_outlined),
