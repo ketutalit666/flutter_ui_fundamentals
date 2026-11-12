@@ -1,3 +1,4 @@
+
 import 'package:flutter/foundation.dart';
 
 import '../models/course.dart';
@@ -9,13 +10,15 @@ class CourseProvider extends ChangeNotifier {
   CourseProvider(this.repository);
 
   List<Course> courses = [];
+
+  // Favorit disimpan berdasarkan kode mata kuliah.
   final Set<String> favorites = {};
 
   bool isLoading = false;
   bool isSaving = false;
   String? error;
 
-  // Mengambil data dari REST API
+  // READ: mengambil data dari sumber aktif.
   Future<void> loadCourses() async {
     isLoading = true;
     error = null;
@@ -23,28 +26,12 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       courses = await repository.getCourses();
-    } catch (e) {
-      error = 'Gagal memuat materi: $e';
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Mengambil data dari Supabase
-  Future<void> loadSupabaseCourses() async {
-    isLoading = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      courses = await repository.getSupabaseCourses();
 
       debugPrint(
-        'Data Supabase berhasil dimuat: ${courses.length} mata kuliah',
+        'Data berhasil dimuat: ${courses.length} mata kuliah',
       );
     } catch (e) {
-      error = 'Gagal memuat data dari Supabase: $e';
+      error = 'Gagal memuat materi: $e';
       debugPrint(error);
     } finally {
       isLoading = false;
@@ -52,10 +39,12 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
+  // FAVORITE: memeriksa status favorit.
   bool isFavorite(String code) {
     return favorites.contains(code);
   }
 
+  // FAVORITE: menambah atau menghapus favorit.
   void toggleFavorite(String code) {
     if (favorites.contains(code)) {
       favorites.remove(code);
@@ -66,6 +55,7 @@ class CourseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // CREATE: menambahkan mata kuliah.
   Future<void> addCourse(Course course) async {
     isSaving = true;
     error = null;
@@ -73,9 +63,15 @@ class CourseProvider extends ChangeNotifier {
 
     try {
       final newCourse = await repository.addCourse(course);
+
       courses.add(newCourse);
+
+      debugPrint(
+        'Mata kuliah berhasil ditambahkan: ${newCourse.title}',
+      );
     } catch (e) {
       error = 'Gagal menambahkan mata kuliah: $e';
+      debugPrint(error);
       rethrow;
     } finally {
       isSaving = false;
@@ -83,6 +79,7 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
+  // UPDATE: memperbarui mata kuliah.
   Future<void> updateCourse(Course course) async {
     isSaving = true;
     error = null;
@@ -98,8 +95,13 @@ class CourseProvider extends ChangeNotifier {
       if (index != -1) {
         courses[index] = updatedCourse;
       }
+
+      debugPrint(
+        'Mata kuliah berhasil diperbarui: ${updatedCourse.title}',
+      );
     } catch (e) {
       error = 'Gagal memperbarui mata kuliah: $e';
+      debugPrint(error);
       rethrow;
     } finally {
       isSaving = false;
@@ -107,33 +109,7 @@ class CourseProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> patchCourse(
-    String id,
-    Map<String, dynamic> updates,
-  ) async {
-    isSaving = true;
-    error = null;
-    notifyListeners();
-
-    try {
-      final updatedCourse = await repository.patchCourse(id, updates);
-
-      final index = courses.indexWhere(
-        (item) => item.id == updatedCourse.id,
-      );
-
-      if (index != -1) {
-        courses[index] = updatedCourse;
-      }
-    } catch (e) {
-      error = 'Gagal memperbarui sebagian data: $e';
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-
+  // DELETE: menghapus mata kuliah.
   Future<void> deleteCourse(String id) async {
     isSaving = true;
     error = null;
@@ -145,38 +121,24 @@ class CourseProvider extends ChangeNotifier {
       );
 
       if (index == -1) {
-        throw Exception('Mata kuliah tidak ditemukan di daftar.');
+        throw Exception('Mata kuliah tidak ditemukan.');
       }
 
       final deletedCourse = courses[index];
 
       await repository.deleteCourse(id);
 
-      courses.removeWhere((item) => item.id == id);
+      courses.removeWhere(
+        (item) => item.id == id,
+      );
+
       favorites.remove(deletedCourse.code);
+
+      debugPrint(
+        'Mata kuliah berhasil dihapus: ${deletedCourse.title}',
+      );
     } catch (e) {
       error = 'Gagal menghapus mata kuliah: $e';
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-  Future<void> insertSupabaseCourse(Course course) async {
-  isSaving = true;
-  error = null;
-  notifyListeners();
-
-  try {
-    final newCourse = await repository.addSupabaseCourse(course);
-
-    courses.add(newCourse);
-
-    debugPrint(
-      'Data berhasil ditambahkan ke daftar: ${newCourse.title}',
-    );
-    } catch (e) {
-      error = 'Gagal menambahkan data ke Supabase: $e';
       debugPrint(error);
       rethrow;
     } finally {
@@ -184,74 +146,4 @@ class CourseProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  Future<void> updateSupabaseCourse(Course course) async {
-  isSaving = true;
-  error = null;
-  notifyListeners();
-
-  try {
-    final updatedCourse =
-        await repository.updateSupabaseCourse(course);
-
-    final index = courses.indexWhere(
-      (item) => item.id == updatedCourse.id,
-    );
-
-    if (index != -1) {
-      courses[index] = updatedCourse;
-    }
-
-    debugPrint(
-      'Data Supabase berhasil diperbarui: ${updatedCourse.title}',
-    );
-    } catch (e) {
-      error = 'Gagal memperbarui data Supabase: $e';
-      debugPrint(error);
-      rethrow;
-    } finally {
-      isSaving = false;
-      notifyListeners();
-    }
-  }
-  // SUPABASE DELETE
-Future<void> deleteSupabaseCourse(String id) async {
-  isSaving = true;
-  error = null;
-  notifyListeners();
-
-  try {
-    // Cari data sebelum dihapus
-    final index = courses.indexWhere(
-      (item) => item.id == id,
-    );
-
-    if (index == -1) {
-      throw Exception('Mata kuliah tidak ditemukan.');
-    }
-
-    final deletedCourse = courses[index];
-
-    // Hapus data dari Supabase
-    await repository.deleteSupabaseCourse(id);
-
-    // Hapus juga dari daftar aplikasi
-    courses.removeWhere(
-      (item) => item.id == id,
-    );
-
-    // Hapus dari daftar favorit jika sebelumnya difavoritkan
-    favorites.remove(deletedCourse.code);
-
-    debugPrint(
-      'Supabase DELETE berhasil: ${deletedCourse.title}',
-    );
-  } catch (e) {
-    error = 'Gagal menghapus data dari Supabase: $e';
-    debugPrint(error);
-    rethrow;
-  } finally {
-    isSaving = false;
-    notifyListeners();
-  }
- }
 }

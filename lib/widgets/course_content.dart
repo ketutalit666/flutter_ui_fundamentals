@@ -8,20 +8,23 @@ import 'course_card.dart';
 class CourseContent extends StatelessWidget {
   final int? limit;
 
-  const CourseContent({super.key, this.limit});
+  const CourseContent({
+    super.key,
+    this.limit,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Consumer<CourseProvider>(
       builder: (context, provider, child) {
-        // Loading State
+        // LOADING STATE
         if (provider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
           );
         }
 
-        // Error State
+        // ERROR STATE
         if (provider.error != null) {
           return Center(
             child: Padding(
@@ -43,10 +46,15 @@ class CourseContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  SelectableText(provider.error!),
+                  SelectableText(
+                    provider.error!,
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
                   FilledButton.icon(
-                    onPressed: provider.loadCourses,
+                    onPressed: provider.isLoading
+                        ? null
+                        : () => provider.loadCourses(),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Coba Lagi'),
                   ),
@@ -56,7 +64,7 @@ class CourseContent extends StatelessWidget {
           );
         }
 
-        // Empty State
+        // EMPTY STATE
         if (provider.courses.isEmpty) {
           return const Center(
             child: Column(
@@ -84,7 +92,7 @@ class CourseContent extends StatelessWidget {
           );
         }
 
-        // Success State
+        // SUCCESS STATE
         final courses = limit == null
             ? provider.courses
             : provider.courses.take(limit!).toList();
@@ -93,7 +101,9 @@ class CourseContent extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           itemCount: courses.length,
           itemBuilder: (context, index) {
-            return CourseCard(course: courses[index]);
+            return CourseCard(
+              course: courses[index],
+            );
           },
         );
       },

@@ -1,13 +1,16 @@
+
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/course.dart';
+import 'course_data_source.dart';
 
-class CourseService {
+class CourseService implements CourseDataSource {
   static const String baseUrl = 'https://course-api-pearl.vercel.app';
 
+  @override
   Future<List<Course>> loadCourses() async {
     final url = Uri.parse('$baseUrl/courses');
 
@@ -23,12 +26,11 @@ class CourseService {
         final List<dynamic> data =
             jsonDecode(response.body) as List<dynamic>;
 
-        final courses = data
-            .map((item) => Course.fromJson(item as Map<String, dynamic>))
+        return data
+            .map((item) => Course.fromJson(
+                  item as Map<String, dynamic>,
+                ))
             .toList();
-
-        debugPrint('Jumlah mata kuliah: ${courses.length}');
-        return courses;
       }
 
       throw Exception(
@@ -41,6 +43,7 @@ class CourseService {
     }
   }
 
+  @override
   Future<Course> createCourse(Course course) async {
     final url = Uri.parse('$baseUrl/courses');
 
@@ -66,11 +69,12 @@ class CourseService {
     }
 
     throw Exception(
-      'Gagal menambahkan mata kuliah. Status Code: ${response.statusCode}. '
-      '${response.body}',
+      'Gagal menambahkan mata kuliah. '
+      'Status Code: ${response.statusCode}. ${response.body}',
     );
   }
 
+  @override
   Future<Course> updateCourse(Course course) async {
     if (course.id == null) {
       throw Exception('ID mata kuliah tidak ditemukan.');
@@ -100,11 +104,12 @@ class CourseService {
     }
 
     throw Exception(
-      'Gagal memperbarui mata kuliah. Status Code: ${response.statusCode}. '
-      '${response.body}',
+      'Gagal memperbarui mata kuliah. '
+      'Status Code: ${response.statusCode}. ${response.body}',
     );
   }
 
+  // PATCH: memperbarui sebagian data mata kuliah.
   Future<Course> patchCourse(
     String id,
     Map<String, dynamic> updates,
@@ -128,12 +133,12 @@ class CourseService {
     }
 
     throw Exception(
-      'Gagal memperbarui sebagian data. Status Code: ${response.statusCode}. '
-      '${response.body}',
+      'Gagal memperbarui sebagian data. '
+      'Status Code: ${response.statusCode}. ${response.body}',
     );
   }
 
-  // HTTP DELETE
+  @override
   Future<void> deleteCourse(String id) async {
     final url = Uri.parse('$baseUrl/courses/$id');
 
@@ -150,8 +155,8 @@ class CourseService {
     }
 
     throw Exception(
-      'Gagal menghapus mata kuliah. Status Code: ${response.statusCode}. '
-      '${response.body}',
+      'Gagal menghapus mata kuliah. '
+      'Status Code: ${response.statusCode}. ${response.body}',
     );
   }
 }

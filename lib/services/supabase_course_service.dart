@@ -1,12 +1,15 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/course.dart';
+import 'course_data_source.dart';
 
-class SupabaseCourseService {
+class SupabaseCourseService implements CourseDataSource {
   final SupabaseClient client = Supabase.instance.client;
 
-  // SELECT: mengambil seluruh data mata kuliah
+  // SELECT: mengambil seluruh data mata kuliah.
+  @override
   Future<List<Course>> loadCourses() async {
     try {
       final response = await client
@@ -28,8 +31,9 @@ class SupabaseCourseService {
     }
   }
 
-  // INSERT: menambahkan mata kuliah
-  Future<Course> insertCourse(Course course) async {
+  // INSERT: menambahkan mata kuliah.
+  @override
+  Future<Course> createCourse(Course course) async {
     try {
       final response = await client
           .from('courses')
@@ -53,7 +57,8 @@ class SupabaseCourseService {
     }
   }
 
-  // UPDATE: memperbarui seluruh data mata kuliah
+  // UPDATE: memperbarui seluruh data mata kuliah.
+  @override
   Future<Course> updateCourse(Course course) async {
     try {
       if (course.id == null) {
@@ -89,19 +94,20 @@ class SupabaseCourseService {
     }
   }
 
-  // DELETE: menghapus mata kuliah berdasarkan ID
-  Future<void> deleteCourse(String courseId) async {
+  // DELETE: menghapus mata kuliah berdasarkan ID.
+  @override
+  Future<void> deleteCourse(String id) async {
     try {
-      final id = int.tryParse(courseId);
+      final courseId = int.tryParse(id);
 
-      if (id == null) {
+      if (courseId == null) {
         throw Exception('Format ID mata kuliah tidak valid.');
       }
 
       final response = await client
           .from('courses')
           .delete()
-          .eq('id', id)
+          .eq('id', courseId)
           .select('id');
 
       if (response.isEmpty) {
@@ -110,7 +116,7 @@ class SupabaseCourseService {
         );
       }
 
-      debugPrint('Supabase DELETE berhasil. ID: $id');
+      debugPrint('Supabase DELETE berhasil. ID: $courseId');
     } catch (e) {
       debugPrint('Supabase DELETE gagal: $e');
       rethrow;

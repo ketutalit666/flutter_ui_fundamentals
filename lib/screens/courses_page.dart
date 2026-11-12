@@ -77,44 +77,64 @@ class CoursesPage extends StatelessWidget {
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Batal'),
             ),
-            FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) {
-                  return;
-                }
+            Consumer<CourseProvider>(
+              builder: (context, provider, child) {
+                return FilledButton(
+                  onPressed: provider.isSaving
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) {
+                            return;
+                          }
 
-                final course = Course(
-                  code: codeController.text.trim(),
-                  title: titleController.text.trim(),
-                  credits: int.parse(creditsController.text.trim()),
-                  status: 'planned',
+                          final course = Course(
+                            code: codeController.text.trim(),
+                            title: titleController.text.trim(),
+                            credits: int.parse(
+                              creditsController.text.trim(),
+                            ),
+                            status: 'planned',
+                          );
+
+                          try {
+                            await context
+                                .read<CourseProvider>()
+                                .addCourse(course);
+
+                            if (!dialogContext.mounted) return;
+
+                            Navigator.pop(dialogContext);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Mata kuliah berhasil ditambahkan.',
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!dialogContext.mounted) return;
+
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Gagal menambahkan data: $e',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  child: provider.isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Simpan'),
                 );
-
-                try {
-                  await context.read<CourseProvider>().insertSupabaseCourse(course);
-
-                  if (!context.mounted) return;
-
-                  Navigator.pop(dialogContext);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Mata kuliah berhasil ditambahkan.',
-                      ),
-                    ),
-                  );
-                } catch (e) {
-                  if (!dialogContext.mounted) return;
-
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    SnackBar(
-                      content: Text('Gagal menambahkan data: $e'),
-                    ),
-                  );
-                }
               },
-              child: const Text('Simpan'),
             ),
           ],
         );
